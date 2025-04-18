@@ -10,6 +10,7 @@ import PrintingInspectionForm from './components/PrintingInspectionForm';
 import { AuthProvider, useAuth } from './components/context/AuthContext';
 import QADashboard from './components/dashboards/QADashboard';
 import Chatbot from './components/chatbot/Chatbot';
+import InspectionForm from './components/forms/InspectionForm'
 
 // Footer component
 const Footer = () => {
@@ -17,7 +18,7 @@ const Footer = () => {
     <footer style={{ backgroundColor: '#0057a7', color: 'white' }} className="py-3 text-center w-full mt-auto">
       <div className="container mx-auto">
         <p className="text-sm">
-          Built By Swajyot Technologies. 2002 – 2025.
+          Built By Swajyot Technologies. 2002 - 2025.
         </p>
       </div>
     </footer>
@@ -155,6 +156,27 @@ const AuthRouter = () => {
       <Route path="/inspection-form" element={
         isAuthenticated ? (
           <InspectionFormLayout user={user} onLogout={logout}>
+            <InspectionForm />
+          </InspectionFormLayout>
+        ) : <Navigate to="/" replace />
+      } />
+      <Route path="/inspection-form/:id" element={
+        isAuthenticated ? (
+          <InspectionFormLayout user={user} onLogout={logout}>
+            <InspectionForm />
+          </InspectionFormLayout>
+        ) : <Navigate to="/" replace />
+      } />
+      <Route path="/ViewInspectionForm-form/:id" element={
+        isAuthenticated ? (
+          <InspectionFormLayout user={user} onLogout={logout}>
+            <InspectionForm />
+          </InspectionFormLayout>
+        ) : <Navigate to="/" replace />
+      } />
+      {/* <Route path="/inspection-form" element={
+        isAuthenticated ? (
+          <InspectionFormLayout user={user} onLogout={logout}>
             <EditableInspectionForm />
           </InspectionFormLayout>
         ) : <Navigate to="/" replace />
@@ -172,7 +194,7 @@ const AuthRouter = () => {
             <EditableInspectionForm />
           </InspectionFormLayout>
         ) : <Navigate to="/" replace />
-      } />
+      } /> */}
       
       {/* Printing Inspection Form Routes */}
       <Route path="/printing-inspection-form" element={

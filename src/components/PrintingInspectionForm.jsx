@@ -4,7 +4,7 @@ import { useAuth } from './context/AuthContext';
 import { inspectionFormAPI } from './api';
 import QASign from '../assets/QASign.png';
 import OperatorSign from '../assets/OperatorSign.png';
-import EmailModal from './EmailModal';
+import EmailModal from './email/EmailModal';
 
 const PrintingInspectionForm = () => {
     const { id } = useParams();

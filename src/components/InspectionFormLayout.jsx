@@ -8,7 +8,7 @@ const InspectionFormLayout = ({ user, onLogout, children }) => {
   
   return (
     <div className="min-h-screen bg-gray-100">
-      <header className="bg-white shadow mb-4 shadow fixed top: 0 w-full">
+      <header className="bg-white shadow mb-4 fixed top: 0 w-full">
         <div className="max-w-full mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="flex items-center">
             <div className="font-bold text-2xl">AGI</div>

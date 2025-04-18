@@ -27,7 +27,7 @@ const Chatbot = () => {
   useEffect(() => {
     if (user) {
       const timer = setTimeout(() => {
-        setIsOpen(true);
+        // setIsOpen(true);
         // Add initial greeting based on user info
         const greeting = `Hi ${user.name || getUserRoleTitle(user)}! How can I help you today?`;
         addBotMessage(greeting);
