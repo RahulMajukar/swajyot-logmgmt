@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { inspectionFormAPI } from './api';
-import { DashboardLayout, StatusBadge, formatDate } from './SharedComponents';
+import { inspectionFormAPI } from '../api';
+import { DashboardLayout, StatusBadge, formatDate } from '../SharedComponents';
 
 const QADashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();

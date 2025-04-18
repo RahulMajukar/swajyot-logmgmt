@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { inspectionFormAPI } from './api';
-import { DashboardLayout, formatTimestamp } from './SharedComponents';
+import { inspectionFormAPI } from '../api';
+import { DashboardLayout, formatTimestamp } from '../SharedComponents';
 
 const AVPDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();

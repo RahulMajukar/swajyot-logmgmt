@@ -1,15 +1,15 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
-import OperatorDashboard from './components/OperatorDashboard';
-import AVPDashboard from './components/AVPDashboard';
-import MasterDashboard from './components/MasterDashboard';
+import OperatorDashboard from './components/dashboards/OperatorDashboard';
+import AVPDashboard from './components/dashboards/AVPDashboard';
+import MasterDashboard from './components/dashboards/MasterDashboard';
 import InspectionFormList from './components/InspectionFormList';
 import EditableInspectionForm from './components/EditableInspectionForm';
 import PrintingInspectionForm from './components/PrintingInspectionForm';
-import { AuthProvider, useAuth } from './components/AuthContext';
-import QADashboard from './components/QADashboard';
-import Chatbot from './components/Chatbot';
+import { AuthProvider, useAuth } from './components/context/AuthContext';
+import QADashboard from './components/dashboards/QADashboard';
+import Chatbot from './components/chatbot/Chatbot';
 
 // Footer component
 const Footer = () => {
@@ -28,7 +28,7 @@ const InspectionFormLayout = ({ user, onLogout, children }) => {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col">
       <header className="bg-blue-300 shadow mb-4">
-        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+        <div className="max-w-full mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="flex items-center">
             <div className="flex justify-center">
               <img

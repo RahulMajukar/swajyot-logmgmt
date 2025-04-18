@@ -39,7 +39,7 @@ export const TopNavBar = ({ user, onLogout }) => {
 
     return (
         <header className={`shadow fixed top-0 w-full ${getBgColorByRole(user.role)}`}>
-            <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <div className="max-w-full mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
 
                 <div className="flex items-center">
                     {/* <div className="font-bold text-3xl relative">
@@ -102,7 +102,7 @@ export const DashboardLayout = ({ user, onLogout, title, subtitle, children }) =
         <div className="min-h-screen bg-gray-100">
             <TopNavBar user={user} onLogout={onLogout} />
 
-            <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 pt-24">
+            <main className="max-w-full mx-auto py-6 px-4 sm:px-6 lg:px-8 pt-24">
                 <div className="mb-8">
                     <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
                     <p className="mt-2 text-gray-600">{subtitle}</p>

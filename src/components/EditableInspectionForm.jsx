@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAuth } from './AuthContext';
+import { useAuth } from './context/AuthContext';
 import { inspectionFormAPI } from './api';
 import QASign from '../assets/QASign.png';
 import OperatorSign from '../assets/OperatorSign.png';

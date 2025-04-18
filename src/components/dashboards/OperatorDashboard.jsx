@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { inspectionFormAPI } from './api';
-import { DashboardLayout, formatDate } from './SharedComponents';
+import { inspectionFormAPI } from '../api';
+import { DashboardLayout, formatDate } from '../SharedComponents';
 import { PlusCircle, List, ChevronDown } from 'lucide-react';
 
 const OperatorDashboard = ({ user, onLogout }) => {
