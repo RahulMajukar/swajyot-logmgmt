@@ -147,6 +147,8 @@ const AuthRouter = () => {
           </Layout>
         ) : <Navigate to="/" replace />
       } />
+      
+      {/* Form Lists */}
       <Route path="/forms/:formType" element={
         isAuthenticated ? (
           <InspectionFormLayout user={user} onLogout={logout}>
@@ -155,10 +157,10 @@ const AuthRouter = () => {
         ) : <Navigate to="/" replace />
       } />
 
+      {/* Coating Inspection Forms */}
       <Route path="/forms/coating/new" element={
         isAuthenticated ? (
           <InspectionFormLayout user={user} onLogout={logout}>
-            {/* <EditableInspectionForm isNew={true} /> */}
             <CoatingInspectionForm isNew={true} />
           </InspectionFormLayout>
         ) : <Navigate to="/" replace />
@@ -166,7 +168,6 @@ const AuthRouter = () => {
       <Route path="/forms/coating/:id" element={
         isAuthenticated ? (
           <InspectionFormLayout user={user} onLogout={logout}>
-            {/* <EditableInspectionForm /> */}
             <CoatingInspectionForm />
           </InspectionFormLayout>
         ) : <Navigate to="/" replace />
@@ -205,53 +206,6 @@ const AuthRouter = () => {
       } />
 
       {/* Legacy Routes (keep for backward compatibility) */}
-      {/* Coating Inspection Form Routes */}
-      {/* <Route path="/inspection-form" element={
-        isAuthenticated ? (
-          <InspectionFormLayout user={user} onLogout={logout}>
-            <EditableInspectionForm isNew={true} />
-          </InspectionFormLayout>
-        ) : <Navigate to="/" replace />
-      } />
-      <Route path="/inspection-form/:id" element={
-        isAuthenticated ? (
-          <InspectionFormLayout user={user} onLogout={logout}>
-            <EditableInspectionForm />
-          </InspectionFormLayout>
-        ) : <Navigate to="/" replace />
-      } />
-      <Route path="/ViewInspectionForm-form/:id" element={
-        isAuthenticated ? (
-          <InspectionFormLayout user={user} onLogout={logout}>
-            <EditableInspectionForm viewOnly={true} />
-          </InspectionFormLayout>
-        ) : <Navigate to="/" replace />
-      } /> */}
-      
-      {/* Printing Inspection Form Routes */}
-      {/* <Route path="/printing-inspection-form" element={
-        isAuthenticated ? (
-          <InspectionFormLayout user={user} onLogout={logout}>
-            <PrintingInspectionForm isNew={true} />
-          </InspectionFormLayout>
-        ) : <Navigate to="/" replace />
-      } />
-      <Route path="/printing-inspection-form/:id" element={
-        isAuthenticated ? (
-          <InspectionFormLayout user={user} onLogout={logout}>
-            <PrintingInspectionForm />
-          </InspectionFormLayout>
-        ) : <Navigate to="/" replace />
-      } /> */}
-      {/* <Route path="/ViewPrintingInspectionForm/:id" element={
-        isAuthenticated ? (
-          <InspectionFormLayout user={user} onLogout={logout}>
-            <PrintingInspectionForm viewOnly={true} />
-          </InspectionFormLayout>
-        ) : <Navigate to="/" replace />
-      } /> */}
-      
-      {/* Line Clearance Form Routes */}
       <Route path="/line-clearance-form" element={
         isAuthenticated ? (
           <InspectionFormLayout user={user} onLogout={logout}>
@@ -266,13 +220,6 @@ const AuthRouter = () => {
           </InspectionFormLayout>
         ) : <Navigate to="/" replace />
       } />
-      {/* <Route path="/ViewLineClearanceForm/:id" element={
-        isAuthenticated ? (
-          <InspectionFormLayout user={user} onLogout={logout}>
-            <LineClearanceForm viewOnly={true} />
-          </InspectionFormLayout>
-        ) : <Navigate to="/" replace />
-      } /> */}
       
       {/* Catch-all route */}
       <Route path="*" element={<Navigate to="/" replace />} />

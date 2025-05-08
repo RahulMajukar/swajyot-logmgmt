@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { ArrowLeft, Filter, Check, X, FileText, Clock, AlertTriangle, Download, Printer } from 'lucide-react';
 import { useAuth } from './context/AuthContext';
-import { inspectionFormAPI, printingInspectionAPI } from './services/api';
+import { inspectionFormAPI } from './services/api';
 import { lineClearanceAPI } from './forms/line_clearance_form/lineClearanceAPI';
+import { coatingInspectionAPI } from './forms/fair-coating/coatingInspectionAPI';
+import { printingInspectionAPI } from './services/api';
 
 const InspectionFormList = () => {
   const { formType } = useParams(); // Get the form type from URL params
@@ -30,7 +32,7 @@ const InspectionFormList = () => {
       case 'clearance':
         return 'Line Clearance Report';
       case 'pricing':
-        return 'Fair Pricing Forms';
+        return 'Incoming Qulality Inspection Report';
       case 'maintenance':
         return 'Maintenance Request Forms';
       case 'inventory':
@@ -53,13 +55,13 @@ const InspectionFormList = () => {
     try {
       setLoading(true);
       setError(null);
-        
+
       let data = [];
       let api;
-        
+
       // Determine which API to use based on form type
       if (activeFormType === 'coating') {
-        api = inspectionFormAPI;
+        api = coatingInspectionAPI;
       } else if (activeFormType === 'printing') {
         api = printingInspectionAPI;
       } else if (activeFormType === 'clearance') {
@@ -69,11 +71,14 @@ const InspectionFormList = () => {
         // For now, show a placeholder message
         throw new Error(`API for ${activeFormType} forms is not yet implemented`);
       }
-        
+
       // Filter based on user role
       if (user.role.toLowerCase() === 'operator') {
         // Operators see their own submissions
         if (activeFormType === 'clearance') {
+          data = await api.getReportsBySubmitter(user.name);
+        } else if (activeFormType === 'coating') {
+          // For coating forms, use the appropriate methods
           data = await api.getReportsBySubmitter(user.name);
         } else if (activeFormType === 'printing') {
           // For printing forms, use the methods available in the printingInspectionAPI
@@ -87,6 +92,8 @@ const InspectionFormList = () => {
         // QA and AVP see submitted forms that need approval
         if (activeFormType === 'clearance') {
           data = await api.getReportsByStatus('SUBMITTED');
+        } else if (activeFormType === 'coating') {
+          data = await api.getReportsByStatus('SUBMITTED');
         } else if (activeFormType === 'printing') {
           // For printing forms, use the methods available in the printingInspectionAPI
           data = await api.getReportsByStatus('SUBMITTED');
@@ -95,15 +102,9 @@ const InspectionFormList = () => {
         }
       } else if (user.role.toLowerCase() === 'master') {
         // Masters see all forms
-        if (activeFormType === 'clearance') {
-          data = await api.getAllReports();
-        } else if (activeFormType === 'printing') {
-          data = await api.getAllReports();
-        } else {
-          data = await api.getAllForms();
-        }
+        data = await api.getAllReports();
       }
-        
+
       setForms(data);
       setFilteredForms(data);
       // Reset status filter when form type changes
@@ -119,31 +120,31 @@ const InspectionFormList = () => {
   // Apply all filters
   useEffect(() => {
     let filtered = [...forms];
-    
+
     // Apply status filter
     if (statusFilter) {
-      filtered = filtered.filter(form => 
+      filtered = filtered.filter(form =>
         form.status && form.status.toLowerCase() === statusFilter.toLowerCase()
       );
     }
-    
+
     // Apply date filter if provided
     if (dateRange.from || dateRange.to) {
       const dateField = activeFormType === 'clearance' ? 'reportDate' : 'inspectionDate';
-      
+
       if (dateRange.from) {
-        filtered = filtered.filter(form => 
+        filtered = filtered.filter(form =>
           new Date(form[dateField]) >= new Date(dateRange.from)
         );
       }
-      
+
       if (dateRange.to) {
-        filtered = filtered.filter(form => 
+        filtered = filtered.filter(form =>
           new Date(form[dateField]) <= new Date(dateRange.to)
         );
       }
     }
-    
+
     setFilteredForms(filtered);
   }, [forms, statusFilter, dateRange, activeFormType]);
 
@@ -163,16 +164,7 @@ const InspectionFormList = () => {
 
   const handleCreateForm = () => {
     // Create form based on the selected type
-    if (activeFormType === 'coating') {
-      navigate(`/forms/${activeFormType}/new`);
-    } else if (activeFormType === 'printing') {
-      navigate(`/forms/${activeFormType}/new`);
-    } else if (activeFormType === 'clearance') {
-      navigate(`/forms/${activeFormType}/new`);
-    } else {
-      // For now, show an alert for unimplemented form types
-      alert(`Creating new ${activeFormType} forms is not yet implemented`);
-    }
+    navigate(`/forms/${activeFormType}/new`);
   };
 
   const getStatusBadgeClass = (status) => {
@@ -220,6 +212,8 @@ const InspectionFormList = () => {
   const getLineTypeValue = (form) => {
     if (activeFormType === 'clearance') {
       return form.line || form.productionArea || 'N/A';
+    } else if (activeFormType === 'coating') {
+      return form.lineNo || 'N/A';
     }
     return form.lineType || 'N/A';
   };
@@ -228,6 +222,8 @@ const InspectionFormList = () => {
   const getVariantValue = (form) => {
     if (activeFormType === 'clearance') {
       return form.newVariantName || form.newVariantDescription || 'N/A';
+    } else if (activeFormType === 'coating') {
+      return form.variant || 'N/A';
     }
     return form.variant || 'N/A';
   };
@@ -236,6 +232,8 @@ const InspectionFormList = () => {
   const getProductValue = (form) => {
     if (activeFormType === 'clearance') {
       return form.productName || 'N/A';
+    } else if (activeFormType === 'coating') {
+      return form.product || 'N/A';
     }
     return form.product || 'N/A';
   };
@@ -243,14 +241,14 @@ const InspectionFormList = () => {
   // Generate document number in format AGI-IMS-LCF-Mon-Date
   const generateDocumentNumber = (dateStr) => {
     if (!dateStr) return 'AGI-IMS-N/A';
-    
+
     // Get the form type prefix
     let prefix = 'AGI-IMS';
     if (activeFormType === 'coating') prefix += '-CTF';
     else if (activeFormType === 'printing') prefix += '-PTF';
     else if (activeFormType === 'clearance') prefix += '-LCF';
     else prefix += `-${activeFormType.substring(0, 3).toUpperCase()}`;
-    
+
     const date = new Date(dateStr);
     const month = date.toLocaleString('default', { month: 'short' }); // e.g., Apr
     const day = String(date.getDate()).padStart(2, '0'); // e.g., 21
@@ -264,7 +262,7 @@ const InspectionFormList = () => {
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center">
-              <Link 
+              <Link
                 to="/forms-dashboard"
                 className="mr-4 p-1 rounded-full hover:bg-gray-100"
                 aria-label="Back to dashboard"
@@ -278,7 +276,7 @@ const InspectionFormList = () => {
                 </p>
               </div>
             </div>
-            
+
             {user.role.toLowerCase() === 'operator' && (
               <button
                 onClick={handleCreateForm}
@@ -290,13 +288,13 @@ const InspectionFormList = () => {
           </div>
         </div>
       </div>
-      
+
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         {/* Filters */}
         <div className="bg-white rounded-lg shadow-sm mb-6 overflow-hidden">
           <div className="p-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-lg font-medium text-gray-900">Filters</h2>
-            <button 
+            <button
               onClick={() => setShowFilters(!showFilters)}
               className="text-gray-500 hover:text-gray-700 flex items-center text-sm font-medium"
             >
@@ -304,7 +302,7 @@ const InspectionFormList = () => {
               {showFilters ? 'Hide Filters' : 'Show Filters'}
             </button>
           </div>
-          
+
           {showFilters && (
             <div className="p-4 bg-gray-50 border-b border-gray-200">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -324,7 +322,7 @@ const InspectionFormList = () => {
                     <option value="REJECTED">Rejected</option>
                   </select>
                 </div>
-                
+
                 {/* Date range filter */}
                 <div>
                   <label htmlFor="dateFrom" className="block text-sm font-medium text-gray-700 mb-1">From Date</label>
@@ -336,7 +334,7 @@ const InspectionFormList = () => {
                     className="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 text-sm"
                   />
                 </div>
-                
+
                 <div>
                   <label htmlFor="dateTo" className="block text-sm font-medium text-gray-700 mb-1">To Date</label>
                   <input
@@ -348,7 +346,7 @@ const InspectionFormList = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="mt-4 flex justify-end">
                 <button
                   onClick={clearFilters}
@@ -359,13 +357,13 @@ const InspectionFormList = () => {
               </div>
             </div>
           )}
-          
+
           {/* Summary */}
           <div className="p-4 flex justify-between items-center">
             <div className="text-sm text-gray-500">
               Showing {filteredForms.length} of {forms.length} forms
             </div>
-            
+
             <div className="flex space-x-2">
               <button className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100">
                 <Printer className="h-5 w-5" />
@@ -376,7 +374,7 @@ const InspectionFormList = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Form Table */}
         {loading ? (
           <div className="bg-white rounded-lg shadow-sm p-8 text-center">
@@ -468,7 +466,7 @@ const InspectionFormList = () => {
                     filteredForms.map((form) => (
                       <tr key={form.id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {generateDocumentNumber(form[getDateField()])}
+                          {form.documentNo || generateDocumentNumber(form[getDateField()])}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {formatDate(form[getDateField()])}
@@ -476,10 +474,10 @@ const InspectionFormList = () => {
                         {activeFormType !== 'clearance' && (
                           <>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {form.product || 'N/A'}
+                              {getProductValue(form)}
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                              {form.variant || 'N/A'}
+                              {getVariantValue(form)}
                             </td>
                           </>
                         )}
@@ -519,7 +517,7 @@ const InspectionFormList = () => {
                 </tbody>
               </table>
             </div>
-            
+
             {/* Pagination (static for demo) */}
             <div className="px-4 py-3 flex items-center justify-between border-t border-gray-200">
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">

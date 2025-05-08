@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { FormHeader, StatusBanner } from '../CommonCode';
+import { coatingInspectionAPI } from './coatingInspectionAPI';
 import QASign from '../../../assets/QASign.png';
 import OperatorSign from '../../../assets/OperatorSign.png';
 import EmailModal from '../../EmailModal';
 
-const CoatingInspectionForm = () => {
+const CoatingInspectionForm = ({ isNew }) => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [loading, setLoading] = useState(id ? true : false);
+  const [loading, setLoading] = useState(id && !isNew ? true : false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -22,14 +23,36 @@ const CoatingInspectionForm = () => {
   const [permissions, setPermissions] = useState({
     canEditDocumentInfo: false,
     canEditInspectionDetails: false,
-    canEditLacquers: false,
+    canEditCoatingDetails: false,
     canEditCharacteristics: false,
     canSubmit: false,
+    canQASubmit: false,
+    canQAReject: false,
     canApprove: false,
     canReject: false,
     canSaveDraft: false,
-    canDownloadPdf: false
+    canDownloadPdf: false,
+    canEmailPdf: false
   });
+
+  // Default characteristics
+  const defaultCharacteristics = [
+    { id: 1, name: 'Colour Shade', observation: '', comments: '' },
+    { id: 2, name: 'Colour Height', observation: '', comments: '' },
+    { id: 3, name: 'Any Visual defect', observation: '', comments: '' },
+    { id: 4, name: 'MEK Test', observation: '', comments: '' },
+    { id: 5, name: 'Cross Cut Test (Tape Test)', observation: '', comments: '' },
+    { id: 6, name: 'Coating Thickness', bodyThickness: '', bottomThickness: '', comments: '' },
+    { id: 7, name: 'Temperature', observation: '', comments: '' },
+    { id: 8, name: 'Viscosity', observation: '', comments: '' },
+    { id: 9, name: 'Batch Composition', observation: '', comments: '' }
+  ];
+
+  // Default coating details
+  const defaultCoatingDetails = [
+    { id: 1, lacquerType: 'Clear Extn', batchNo: '', quantity: '', numberOfPieces: '', expiryDate: '' },
+    { id: 2, lacquerType: 'Red Dye', batchNo: '', quantity: '', numberOfPieces: '', expiryDate: '' }
+  ];
 
   // State for form data
   const [formData, setFormData] = useState({
@@ -49,42 +72,59 @@ const CoatingInspectionForm = () => {
     lineNo: '02',
     customer: '',
     sampleSize: '08 Nos.',
-    lacquers: [
-      { id: 1, name: 'Clear Extn', weight: '', batchNo: '', expiryDate: '' },
-      { id: 2, name: 'Red Dye', weight: '', batchNo: '', expiryDate: '' }
-    ],
-    characteristics: [
-      { id: 1, name: 'Colour Shade', observation: '', comments: '' },
-      { id: 2, name: '(Colour Height)', observation: '', comments: '' },
-      { id: 3, name: 'Any Visual defect', observation: '', comments: '' },
-      { id: 4, name: 'MEK Test', observation: '', comments: '' },
-      { id: 5, name: 'Cross Cut Test (Tape Test)', observation: '', comments: '' },
-      { id: 6, name: 'Coating Thickness', bodyThickness: '', bottomThickness: '', comments: '' },
-      { id: 7, name: 'Temperature', observation: '', comments: '' },
-      { id: 8, name: 'Viscosity', observation: '', comments: '' },
-      { id: 9, name: 'Batch Composition', observation: '', comments: '' }
-    ],
-    qaExecutive: '',
-    qaSignature: null,
-    productionOperator: '',
-    operatorSignature: null,
-    finalApprovalTime: '',
+    coatingDetails: defaultCoatingDetails,
+    characteristics: defaultCharacteristics,
+    qaName: '',
+    qaSignature: '',
+    operatorName: '',
+    operatorSignature: '',
+    approvalTime: '',
     status: 'DRAFT',
     submittedBy: '',
     submittedAt: null,
     reviewedBy: '',
     reviewedAt: null,
-    comments: ''
+    comments: '',
+    // Specific fields mapped from characteristics for easier backend compatibility
+    colorShade: '',
+    colorHeight: '',
+    visualDefect: '',
+    mekTest: '',
+    crossCutTest: '',
+    coatingThicknessBody: '',
+    coatingThicknessBottom: '',
+    temperature: '',
+    viscosity: '',
+    batchComposition: ''
   });
 
-  // Fetch form data if editing an existing form 
+  // Fetch form data if editing an existing form
   useEffect(() => {
-    if (id) {
+    if (id && !isNew) {
       const fetchForm = async () => {
         try {
           setLoading(true);
-          const data = await inspectionFormAPI.getFormById(id);
-          setFormData(data);
+          const data = await coatingInspectionAPI.getReportById(id);
+          
+          // Initialize characteristics if not present
+          if (!data.characteristics || data.characteristics.length === 0) {
+            data.characteristics = defaultCharacteristics;
+          }
+          
+          // Initialize coating details if not present
+          if (!data.coatingDetails || data.coatingDetails.length === 0) {
+            data.coatingDetails = defaultCoatingDetails;
+          }
+          
+          // Format dates for display
+          const formattedData = {
+            ...data,
+            issueDate: data.issueDate?.split('T')[0],
+            reviewedDate: data.reviewedDate?.split('T')[0],
+            inspectionDate: data.inspectionDate?.split('T')[0]
+          };
+          
+          setFormData(formattedData);
         } catch (error) {
           console.error('Error fetching form:', error);
           setError('Failed to load inspection form. Please try again.');
@@ -95,7 +135,7 @@ const CoatingInspectionForm = () => {
 
       fetchForm();
     }
-  }, [id]);
+  }, [id, isNew]);
 
   // Update permissions based on user role and form status
   useEffect(() => {
@@ -111,43 +151,21 @@ const CoatingInspectionForm = () => {
       const isRejected = formData.status === 'REJECTED';
 
       setPermissions({
-        // Admin can edit anything
-        canEditDocumentInfo: (isOperator && isDraft),
-
-        // Operators can edit details in draft state
-        canEditInspectionDetails: (isOperator && isDraft),
-
-        // Operators can edit lacquers in draft state
-        canEditLacquers: (isOperator && isDraft),
-
-        // QA can edit characteristics when submitted
-        canEditCharacteristics: (isQA && isSubmitted) || (isOperator && isDraft),
-
-        // Operators can submit drafts
+        canEditDocumentInfo: (isOperator && isDraft) || isMaster,
+        canEditInspectionDetails: (isOperator && isDraft) || isMaster,
+        canEditCoatingDetails: (isOperator && isDraft) || isMaster,
+        canEditCharacteristics: (isQA && isSubmitted) || (isOperator && isDraft) || isMaster,
         canSubmit: (isOperator && isDraft),
-
-        // QA can submit the form after reviewing
         canQASubmit: (isQA && isSubmitted),
-
-        // QA can reject
         canQAReject: (isQA && isSubmitted),
-
-        // AVP can approve submitted forms
         canApprove: (isAVP && isSubmitted),
-
-        // AVP can reject submitted forms
         canReject: (isAVP && isSubmitted),
-
-        // Operator can save as draft
-        canSaveDraft: (isOperator && isDraft),
-
-        // Master can download PDF anytime, others only when approved
-        canDownloadPdf: isApproved
+        canSaveDraft: (isOperator && isDraft) || isMaster,
+        canDownloadPdf: isApproved || isMaster,
+        canEmailPdf: isApproved || isMaster
       });
     }
   }, [user, formData]);
-
-
 
   // Variant options
   const variantOptions = ['Pink matt', 'Blue matt', 'Green matt', 'Yellow matt'];
@@ -158,6 +176,17 @@ const CoatingInspectionForm = () => {
   // Line number options
   const lineOptions = ['01', '02', '03', '04', '05'];
 
+  // Lacquer type options
+  const lacquerOptions = [
+    'Clear Extn', 
+    'Red Dye', 
+    'Black Dye', 
+    'Pink Dye', 
+    'Violet Dye', 
+    'Matt Bath',
+    'Hardener'
+  ];
+
   // Handle form field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -167,7 +196,21 @@ const CoatingInspectionForm = () => {
     });
   };
 
-  // NEW: Function to handle email sending
+  // Handle document info changes
+  const handleDocumentInfoChange = (name, value) => {
+    // Map common component field names to your form field names
+    const fieldMap = {
+      'revision': 'issuanceNo',
+      'effectiveDate': 'issueDate',
+      'reviewedOn': 'reviewedDate',
+      'issuedBy': 'issued'
+    };
+
+    const formField = fieldMap[name] || name;
+    setFormData(prev => ({ ...prev, [formField]: value }));
+  };
+
+  // Handle email sending
   const handleSendEmail = async (emailData) => {
     if (!id) return;
 
@@ -177,7 +220,7 @@ const CoatingInspectionForm = () => {
       console.log("Email data:", emailData);
 
       // Call the API to send email with attached PDF
-      const result = await inspectionFormAPI.sendEmailWithPdf(id, emailData);
+      const result = await coatingInspectionAPI.sendEmailWithPdf(id, emailData, user.name);
       console.log("Email API response:", result);
 
       // Show success message and close modal
@@ -191,42 +234,44 @@ const CoatingInspectionForm = () => {
     }
   };
 
-  // Handle lacquer changes
-  const handleLacquerChange = (index, field, value) => {
-    const updatedLacquers = [...formData.lacquers];
-    updatedLacquers[index] = {
-      ...updatedLacquers[index],
+  // Handle coating detail changes
+  const handleCoatingDetailChange = (index, field, value) => {
+    const updatedDetails = [...formData.coatingDetails];
+    updatedDetails[index] = {
+      ...updatedDetails[index],
       [field]: value
     };
 
     // Update batch composition if necessary
+    const batchComposition = generateBatchComposition(updatedDetails);
+    
+    setFormData(prev => ({
+      ...prev,
+      coatingDetails: updatedDetails,
+      batchComposition: batchComposition
+    }));
+
+    // Also update the batch composition in characteristics
     const batchCompositionIndex = formData.characteristics.findIndex(c => c.name === 'Batch Composition');
     if (batchCompositionIndex !== -1) {
-      const composition = generateBatchComposition(updatedLacquers);
       const updatedCharacteristics = [...formData.characteristics];
       updatedCharacteristics[batchCompositionIndex] = {
         ...updatedCharacteristics[batchCompositionIndex],
-        observation: composition
+        observation: batchComposition
       };
 
-      setFormData({
-        ...formData,
-        lacquers: updatedLacquers,
+      setFormData(prev => ({
+        ...prev,
         characteristics: updatedCharacteristics
-      });
-    } else {
-      setFormData({
-        ...formData,
-        lacquers: updatedLacquers
-      });
+      }));
     }
   };
 
-  // Generate batch composition text
-  const generateBatchComposition = (lacquers) => {
-    return lacquers
-      .filter(l => l.name && l.weight)
-      .map(l => `${l.name} ${l.weight}`)
+  // Generate batch composition text from coating details
+  const generateBatchComposition = (details) => {
+    return details
+      .filter(d => d.lacquerType && d.quantity)
+      .map(d => `${d.lacquerType} ${d.quantity}`)
       .join(' ');
   };
 
@@ -238,62 +283,105 @@ const CoatingInspectionForm = () => {
       [field]: value
     };
 
-    setFormData({
-      ...formData,
-      characteristics: updatedChars
-    });
+    // Update specific form fields based on characteristic
+    const newFormData = { ...formData, characteristics: updatedChars };
+    
+    // Map characteristic observations to specific fields
+    const char = updatedChars[index];
+    const name = char.name.toLowerCase().replace(/\s+/g, '');
+    
+    if (name === 'colourshade' || name === 'colorshade') {
+      newFormData.colorShade = field === 'observation' ? value : char.observation;
+    } else if (name === 'colourheight' || name === 'colorheight') {
+      newFormData.colorHeight = field === 'observation' ? value : char.observation;
+    } else if (name.includes('visual')) {
+      newFormData.visualDefect = field === 'observation' ? value : char.observation;
+    } else if (name.includes('mek')) {
+      newFormData.mekTest = field === 'observation' ? value : char.observation;
+    } else if (name.includes('crosscut') || name.includes('tape')) {
+      newFormData.crossCutTest = field === 'observation' ? value : char.observation;
+    } else if (name.includes('thickness') && field === 'bodyThickness') {
+      newFormData.coatingThicknessBody = value;
+    } else if (name.includes('thickness') && field === 'bottomThickness') {
+      newFormData.coatingThicknessBottom = value;
+    } else if (name.includes('temperature')) {
+      newFormData.temperature = field === 'observation' ? value : char.observation;
+    } else if (name.includes('viscosity')) {
+      newFormData.viscosity = field === 'observation' ? value : char.observation;
+    } else if (name.includes('batch')) {
+      newFormData.batchComposition = field === 'observation' ? value : char.observation;
+    }
+
+    setFormData(newFormData);
   };
 
-  // Save the form (create or update)
-  const saveForm = async (status = formData.status) => {
+  // Sanitize form data for API submission
+  const sanitizeFormData = (data) => {
+    // Create a deep copy to avoid modifying the original
+    const sanitized = JSON.parse(JSON.stringify(data));
+    
+    // Format dates properly
+    if (sanitized.issueDate && !sanitized.issueDate.includes('T')) {
+      sanitized.issueDate += 'T00:00:00';
+    }
+    
+    if (sanitized.reviewedDate && !sanitized.reviewedDate.includes('T')) {
+      sanitized.reviewedDate += 'T00:00:00';
+    }
+    
+    if (sanitized.inspectionDate && !sanitized.inspectionDate.includes('T')) {
+      sanitized.inspectionDate += 'T00:00:00';
+    }
+    
+    return sanitized;
+  };
+
+  // Save form data
+  const saveForm = async (newStatus) => {
     try {
       setSaving(true);
 
-      // Add operator info if missing
-      let updatedFormData = {
+      const updatedFormData = {
         ...formData,
-        status: status
+        status: newStatus,
+        submittedBy: (newStatus === 'SUBMITTED' && !formData.submittedBy) ? user.name : formData.submittedBy,
+        submittedAt: (newStatus === 'SUBMITTED' && !formData.submittedAt) ? new Date().toISOString() : formData.submittedAt,
+        reviewedBy: (newStatus === 'APPROVED' || newStatus === 'REJECTED') ? user.name : formData.reviewedBy,
+        reviewedAt: (newStatus === 'APPROVED' || newStatus === 'REJECTED') ? new Date().toISOString() : formData.reviewedAt,
       };
 
-      // Add submission information if submitting (user name and timestamp)
-      if (status === 'SUBMITTED' && user.role === 'operator') {
-        updatedFormData = {
-          ...updatedFormData,
-          submittedBy: user.name,
-          submittedAt: new Date().toISOString(),
-        };
+      // If operator is submitting, add their signature
+      if (user.role === 'operator' && newStatus === 'SUBMITTED' && !updatedFormData.operatorSignature) {
+        updatedFormData.operatorName = user.name;
+        updatedFormData.operatorSignature = `signed_by_${user.name.toLowerCase().replace(/\\s/g, '_')}`;
       }
 
-      // Add operator signature if user is operator
-      if (user.role === 'operator' && !updatedFormData.productionOperator) {
-        updatedFormData = {
-          ...updatedFormData,
-          productionOperator: user.name,
-          operatorSignature: `signed_by_${user.name.toLowerCase().replace(/\\s/g, '_')}`
-        };
+      // If QA is approving/rejecting, add their signature
+      if ((user.role === 'qa' || user.role === 'avp') && 
+          (newStatus === 'APPROVED' || newStatus === 'REJECTED') && 
+          !updatedFormData.qaSignature) {
+        updatedFormData.qaName = user.name;
+        updatedFormData.qaSignature = `signed_by_${user.name.toLowerCase().replace(/\\s/g, '_')}`;
+        updatedFormData.approvalTime = new Date().toLocaleTimeString();
       }
 
+      // Sanitize form data for API submission
+      const sanitizedData = sanitizeFormData(updatedFormData);
+
+      // Update or create the report
       let result;
-      if (id) {
-        // Update existing form
-        result = await inspectionFormAPI.updateForm(id, updatedFormData);
+      if (id && !isNew) {
+        result = await coatingInspectionAPI.updateReport(id, sanitizedData);
       } else {
-        // Create new form
-        result = await inspectionFormAPI.createForm(updatedFormData);
+        result = await coatingInspectionAPI.createReport(sanitizedData);
       }
 
-      alert(`Form ${id ? 'updated' : 'created'} successfully!`);
-
-      // Navigate back to form list or to the newly created form
-      if (!id) {
-        navigate(`/inspection-form/${result.id}`);
-      }
-
+      alert(`Form ${id && !isNew ? 'updated' : 'created'} successfully!`);
+      navigate('/forms/coating');
       return result;
     } catch (error) {
       console.error('Error saving form:', error);
-      alert(`Failed to ${id ? 'update' : 'create'} form. Please try again.`);
-      throw error;
+      alert(`Failed to ${id && !isNew ? 'update' : 'create'} form. Please try again.`);
     } finally {
       setSaving(false);
     }
@@ -303,50 +391,40 @@ const CoatingInspectionForm = () => {
   const saveDraft = async () => {
     try {
       await saveForm('DRAFT');
-      alert('Form saved as draft!');
-      navigate('/forms');
     } catch (error) {
       console.error('Error saving draft:', error);
       alert('Failed to save form as draft. Please try again.');
     }
   };
 
-  // Submit the form for approval (by operator)
+  // Submit the form for QA approval
   const submitForm = async () => {
     try {
-      const saved = await saveForm('SUBMITTED');
-      alert('Form submitted for approval!');
-      navigate('/forms');
-      return saved;
+      await saveForm('SUBMITTED');
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('Failed to submit form for approval. Please try again.');
     }
   };
 
-  // QA submits the form after review
-  // QA submits the form after review
+  // QA submits the form to AVP
   const qaSubmitForm = async () => {
     try {
-      setSaving(true);
-
-      // Create an updated form data object with QA information
+      // Add QA signature
       const updatedFormData = {
         ...formData,
-        qaExecutive: user.name,
+        qaName: user.name,
         qaSignature: `signed_by_${user.name.toLowerCase().replace(/\s/g, '_')}`,
         reviewedBy: user.name,
         reviewedAt: new Date().toISOString(),
         status: 'SUBMITTED'
       };
 
-      // Update the form
-      const result = await inspectionFormAPI.updateForm(id, updatedFormData);
-
+      setSaving(true);
+      const sanitizedData = sanitizeFormData(updatedFormData);
+      await coatingInspectionAPI.updateReport(id, sanitizedData);
       alert('Form submitted to AVP for approval!');
-      navigate('/forms');
-
-      return result;
+      navigate('/forms/coating');
     } catch (error) {
       console.error('Error submitting form:', error);
       alert('Failed to submit form to AVP. Please try again.');
@@ -376,13 +454,10 @@ const CoatingInspectionForm = () => {
         comments: comments
       };
 
-      // Update the form
-      const result = await inspectionFormAPI.updateForm(id, updatedFormData);
-
+      const sanitizedData = sanitizeFormData(updatedFormData);
+      await coatingInspectionAPI.updateReport(id, sanitizedData);
       alert('Form rejected successfully!');
-      navigate('/forms');
-
-      return result;
+      navigate('/forms/coating');
     } catch (error) {
       console.error('Error rejecting form:', error);
       alert('Failed to reject form. Please try again.');
@@ -391,41 +466,30 @@ const CoatingInspectionForm = () => {
     }
   };
 
-  // Approve the form (by AVP)
-  // Approve the form (by AVP)
+  // AVP approves the form
   const approveForm = async () => {
     if (!id) return;
 
     try {
       setSaving(true);
 
-      // Create an updated form data object with QA info
-      let updatedFormData = {
+      const updatedFormData = {
         ...formData,
-        qaExecutive: user.name,
+        qaName: user.name,
         qaSignature: `signed_by_${user.name.toLowerCase().replace(/\s/g, '_')}`,
-        finalApprovalTime: new Date().toLocaleTimeString(),
-        status: 'APPROVED'  // Ensuring status is set to APPROVED
+        approvalTime: new Date().toLocaleTimeString(),
+        status: 'APPROVED'
       };
-
-      // Update the local state immediately for UI display
-      setFormData(updatedFormData);
 
       const comments = window.prompt('Add any approval comments (optional):');
       if (comments) {
         updatedFormData.comments = comments;
       }
 
-      // Update the form with the signature information and approval
-      const result = await inspectionFormAPI.updateForm(id, updatedFormData);
-
-      // Update local state with the returned data from the server
-      setFormData(result);
-
+      const sanitizedData = sanitizeFormData(updatedFormData);
+      await coatingInspectionAPI.updateReport(id, sanitizedData);
       alert('Form approved successfully!');
-      navigate('/forms');
-
-      return result;
+      navigate('/forms/coating');
     } catch (error) {
       console.error('Error approving form:', error);
       alert('Failed to approve form. Please try again.');
@@ -434,7 +498,7 @@ const CoatingInspectionForm = () => {
     }
   };
 
-  // Reject the form (by AVP)
+  // AVP rejects the form
   const rejectForm = async () => {
     if (!id) return;
 
@@ -449,20 +513,17 @@ const CoatingInspectionForm = () => {
 
       const updatedFormData = {
         ...formData,
-        qaExecutive: user.name,
-        qaSignature: `signed_by_${user.name.toLowerCase().replace(/\\s/g, '_')}`,
-        finalApprovalTime: new Date().toLocaleTimeString(),
+        qaName: user.name,
+        qaSignature: `signed_by_${user.name.toLowerCase().replace(/\s/g, '_')}`,
+        approvalTime: new Date().toLocaleTimeString(),
         status: 'REJECTED',
         comments: comments
       };
 
-      // Update the form
-      const result = await inspectionFormAPI.updateForm(id, updatedFormData);
-
+      const sanitizedData = sanitizeFormData(updatedFormData);
+      await coatingInspectionAPI.updateReport(id, sanitizedData);
       alert('Form rejected successfully!');
-      navigate('/forms');
-
-      return result;
+      navigate('/forms/coating');
     } catch (error) {
       console.error('Error rejecting form:', error);
       alert('Failed to reject form. Please try again.');
@@ -474,19 +535,17 @@ const CoatingInspectionForm = () => {
   // Download PDF
   const downloadPdf = async () => {
     try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      const userName = user?.name;
-
-      await inspectionFormAPI.downloadPdf(id, userName);
+      const userName = user?.name || 'Anonymous';
+      await coatingInspectionAPI.downloadPdf(id, userName);
     } catch (error) {
+      console.error('Error downloading PDF:', error);
       alert('Failed to download PDF. Please try again.');
     }
   };
 
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    await saveForm();
+  // Handle email success
+  const handleEmailSuccess = () => {
+    alert('Email sent successfully!');
   };
 
   if (loading) {
@@ -507,14 +566,13 @@ const CoatingInspectionForm = () => {
 
   return (
     <div className="flex justify-center bg-gray-100 p-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-4xl bg-white shadow-md pt-2">
-
+      <form className="w-full max-w-4xl bg-white shadow-md pt-2">
         {/* Email Modal Component */}
         <EmailModal
           isOpen={isEmailModalOpen}
           onClose={() => setIsEmailModalOpen(false)}
           formId={id}
-          onSuccess={() => console.log("Email sent successfully!")}
+          onSuccess={handleEmailSuccess}
         />
 
         {/* Form Status Banner */}
@@ -538,21 +596,7 @@ const CoatingInspectionForm = () => {
           }}
           scope="AGI / DEC / COATING"
           unit="AGI Speciality Glass Division"
-          onDocumentInfoChange={(name, value) => {
-            // Map common component field names to your form field names
-            const fieldMap = {
-              'revision': 'issuanceNo',
-              'effectiveDate': 'issueDate',
-              'reviewedOn': 'reviewedDate',
-              'issuedBy': 'issued'
-            };
-
-            const formField = fieldMap[name] || name;
-            setFormData({
-              ...formData,
-              [formField]: value
-            });
-          }}
+          onDocumentInfoChange={handleDocumentInfoChange}
           readOnly={!permissions.canEditDocumentInfo}
         />
 
@@ -561,56 +605,51 @@ const CoatingInspectionForm = () => {
             <div className="border-r border-gray-800">
               <div className="border-b border-gray-800 p-2">
                 <span className="font-semibold">Date: </span>
-                {formData.status === 'APPROVED' ? (
-                  <span>{formData.inspectionDate}</span>
-                ) : (
+                {permissions.canEditInspectionDetails ? (
                   <input
                     type="date"
                     name="inspectionDate"
                     value={formData.inspectionDate}
                     onChange={handleChange}
-                    disabled={!permissions.canEditInspectionDetails}
-                    className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                    className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                   />
+                ) : (
+                  <span>{formData.inspectionDate}</span>
                 )}
               </div>
               <div className="border-b border-gray-800 p-2">
                 <span className="font-semibold">Product: </span>
-                {formData.status === 'APPROVED' ? (
-                  <span>{formData.product}</span>
-                ) : (
+                {permissions.canEditInspectionDetails ? (
                   <input
                     type="text"
                     name="product"
                     value={formData.product}
                     onChange={handleChange}
-                    disabled={!permissions.canEditInspectionDetails}
-                    className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                    className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                   />
+                ) : (
+                  <span>{formData.product}</span>
                 )}
               </div>
               <div className="p-2">
                 <span className="font-semibold">Size No.: </span>
-                {formData.status === 'APPROVED' ? (
-                  <span>{formData.sizeNo}</span>
-                ) : (
+                {permissions.canEditInspectionDetails ? (
                   <input
                     type="text"
                     name="sizeNo"
                     value={formData.sizeNo}
                     onChange={handleChange}
-                    disabled={!permissions.canEditInspectionDetails}
-                    className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                    className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                   />
+                ) : (
+                  <span>{formData.sizeNo}</span>
                 )}
               </div>
             </div>
             <div className="border-r border-gray-800">
               <div className="border-b border-gray-800 p-2">
                 <span className="font-semibold">Shift: </span>
-                {formData.status === 'APPROVED' || !permissions.canEditInspectionDetails ? (
-                  <span>{formData.shift}</span>
-                ) : (
+                {permissions.canEditInspectionDetails ? (
                   <select
                     name="shift"
                     value={formData.shift}
@@ -621,13 +660,13 @@ const CoatingInspectionForm = () => {
                       <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
+                ) : (
+                  <span>{formData.shift}</span>
                 )}
               </div>
               <div className="border-b border-gray-800 p-2">
                 <span className="font-semibold">Variant: </span>
-                {formData.status === 'APPROVED' || !permissions.canEditInspectionDetails ? (
-                  <span>{formData.variant}</span>
-                ) : (
+                {permissions.canEditInspectionDetails ? (
                   <select
                     name="variant"
                     value={formData.variant}
@@ -638,6 +677,8 @@ const CoatingInspectionForm = () => {
                       <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
+                ) : (
+                  <span>{formData.variant}</span>
                 )}
               </div>
               <div className="p-2"></div>
@@ -645,9 +686,7 @@ const CoatingInspectionForm = () => {
             <div>
               <div className="border-b border-gray-800 p-2">
                 <span className="font-semibold">Line No.: </span>
-                {formData.status === 'APPROVED' || !permissions.canEditInspectionDetails ? (
-                  <span>{formData.lineNo}</span>
-                ) : (
+                {permissions.canEditInspectionDetails ? (
                   <select
                     name="lineNo"
                     value={formData.lineNo}
@@ -658,13 +697,13 @@ const CoatingInspectionForm = () => {
                       <option key={option} value={option}>{option}</option>
                     ))}
                   </select>
+                ) : (
+                  <span>{formData.lineNo}</span>
                 )}
               </div>
               <div className="border-b border-gray-800 p-2">
                 <span className="font-semibold">Customer: </span>
-                {formData.status === 'APPROVED' || !permissions.canEditInspectionDetails ? (
-                  <span>{formData.customer}</span>
-                ) : (
+                {permissions.canEditInspectionDetails ? (
                   <input
                     type="text"
                     name="customer"
@@ -672,13 +711,13 @@ const CoatingInspectionForm = () => {
                     onChange={handleChange}
                     className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                   />
+                ) : (
+                  <span>{formData.customer}</span>
                 )}
               </div>
               <div className="p-2">
                 <span className="font-semibold">Sample Size: </span>
-                {formData.status === 'APPROVED' || !permissions.canEditInspectionDetails ? (
-                  <span>{formData.sampleSize}</span>
-                ) : (
+                {permissions.canEditInspectionDetails ? (
                   <input
                     type="text"
                     name="sampleSize"
@@ -686,101 +725,109 @@ const CoatingInspectionForm = () => {
                     onChange={handleChange}
                     className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                   />
+                ) : (
+                  <span>{formData.sampleSize}</span>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Lacquer Table */}
+        {/* Coating Details Table */}
         <div className="relative">
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr>
                 <th className="border border-gray-800 p-2 w-12 bg-gray-200">S.No.</th>
                 <th className="border border-gray-800 p-2 bg-gray-200">Lacquer / Dye</th>
-                <th className="border border-gray-800 p-2 bg-gray-200">wt.</th>
                 <th className="border border-gray-800 p-2 bg-gray-200">Batch No.</th>
+                <th className="border border-gray-800 p-2 bg-gray-200">Qty.</th>
+                <th className="border border-gray-800 p-2 bg-gray-200">No. of Pieces</th>
                 <th className="border border-gray-800 p-2 bg-gray-200">Expiry Date</th>
               </tr>
             </thead>
             <tbody>
-              {formData.lacquers.map((lacquer, index) => {
+              {formData.coatingDetails.map((detail, index) => {
                 // Define unit based on the selected lacquer/dye
                 let unit = "GM";
-                if (lacquer.name === "Clear Extn") {
+                if (detail.lacquerType === "Clear Extn") {
                   unit = "KG";
                 }
 
                 return (
-                  <tr key={lacquer.id}>
-                    <td className="border border-gray-800 p-2 text-center">{lacquer.id}</td>
+                  <tr key={detail.id}>
+                    <td className="border border-gray-800 p-2 text-center">{detail.id}</td>
                     <td className="border border-gray-800 p-2">
-                      {formData.status === 'APPROVED' || !permissions.canEditLacquers ? (
-                        <div className="px-1 py-1">{lacquer.name}</div>
-                      ) : (
+                      {permissions.canEditCoatingDetails ? (
                         <select
-                          value={lacquer.name}
-                          onChange={(e) => handleLacquerChange(index, 'name', e.target.value)}
+                          value={detail.lacquerType}
+                          onChange={(e) => handleCoatingDetailChange(index, 'lacquerType', e.target.value)}
                           className="w-full px-1 py-1 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                         >
                           <option value="">Select Lacquer/Dye</option>
-                          <option value="Clear Extn">Clear Extn</option>
-                          <option value="Red Dye">Red Dye</option>
-                          <option value="Black Dye">Black Dye</option>
-                          <option value="Pink Dye">Pink Dye</option>
-                          <option value="Violet Dye">Violet Dye</option>
-                          <option value="Matt Bath">Matt Bath</option>
-                          <option value="Hardener">Hardener</option>
+                          {lacquerOptions.map(option => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
                         </select>
+                      ) : (
+                        <div className="px-1 py-1">{detail.lacquerType}</div>
+                      )}
+                    </td>
+                    <td className="border border-gray-800 p-2 text-center">
+                      {permissions.canEditCoatingDetails ? (
+                        <input
+                          type="text"
+                          value={detail.batchNo}
+                          onChange={(e) => handleCoatingDetailChange(index, 'batchNo', e.target.value)}
+                          className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
+                        />
+                      ) : (
+                        <div>{detail.batchNo}</div>
                       )}
                     </td>
                     <td className="border border-gray-800 p-2 text-center">
                       <div className="flex items-center">
-                        {formData.status === 'APPROVED' ? (
-                          <div>
-                            {lacquer.weight} {lacquer.name && unit}
-                          </div>
-                        ) : (
+                        {permissions.canEditCoatingDetails ? (
                           <>
                             <input
                               type="text"
-                              value={lacquer.weight}
-                              onChange={(e) => handleLacquerChange(index, 'weight', e.target.value)}
-                              disabled={!permissions.canEditLacquers}
-                              className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                              value={detail.quantity}
+                              onChange={(e) => handleCoatingDetailChange(index, 'quantity', e.target.value)}
+                              className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                             />
-                            {lacquer.name && (
+                            {detail.lacquerType && (
                               <span className="ml-1 text-gray-500 text-xs whitespace-nowrap">{unit}</span>
                             )}
                           </>
+                        ) : (
+                          <div>
+                            {detail.quantity} {detail.lacquerType && unit}
+                          </div>
                         )}
                       </div>
                     </td>
                     <td className="border border-gray-800 p-2 text-center">
-                      {formData.status === 'APPROVED' ? (
-                        <div>{lacquer.batchNo}</div>
-                      ) : (
+                      {permissions.canEditCoatingDetails ? (
                         <input
                           type="text"
-                          value={lacquer.batchNo}
-                          onChange={(e) => handleLacquerChange(index, 'batchNo', e.target.value)}
-                          disabled={!permissions.canEditLacquers}
-                          className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                          value={detail.numberOfPieces}
+                          onChange={(e) => handleCoatingDetailChange(index, 'numberOfPieces', e.target.value)}
+                          className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                         />
+                      ) : (
+                        <div>{detail.numberOfPieces}</div>
                       )}
                     </td>
                     <td className="border border-gray-800 p-2 text-center">
-                      {formData.status === 'APPROVED' ? (
-                        <div>{lacquer.expiryDate}</div>
-                      ) : (
+                      {permissions.canEditCoatingDetails ? (
                         <input
                           type="date"
-                          value={lacquer.expiryDate}
-                          onChange={(e) => handleLacquerChange(index, 'expiryDate', e.target.value)}
-                          disabled={!permissions.canEditLacquers}
-                          className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                          value={detail.expiryDate}
+                          onChange={(e) => handleCoatingDetailChange(index, 'expiryDate', e.target.value)}
+                          className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
                         />
+                      ) : (
+                        <div>{detail.expiryDate}</div>
                       )}
                     </td>
                   </tr>
@@ -789,23 +836,23 @@ const CoatingInspectionForm = () => {
             </tbody>
           </table>
 
-          {/* For the Add Row button in the Lacquer table */}
-          {formData.status !== 'APPROVED' && permissions.canEditLacquers && (
+          {/* Add Row button for Coating Details */}
+          {permissions.canEditCoatingDetails && (
             <button
               type="button"
               onClick={() => {
-                const newId = formData.lacquers.length > 0
-                  ? Math.max(...formData.lacquers.map(l => l.id)) + 1
+                const newId = formData.coatingDetails.length > 0
+                  ? Math.max(...formData.coatingDetails.map(d => d.id)) + 1
                   : 1;
 
-                const updatedLacquers = [
-                  ...formData.lacquers,
-                  { id: newId, name: '', weight: '', batchNo: '', expiryDate: '' }
+                const updatedDetails = [
+                  ...formData.coatingDetails,
+                  { id: newId, lacquerType: '', batchNo: '', quantity: '', numberOfPieces: '', expiryDate: '' }
                 ];
 
                 setFormData({
                   ...formData,
-                  lacquers: updatedLacquers
+                  coatingDetails: updatedDetails
                 });
               }}
               className="mt-2 flex items-center bg-green-500 hover:bg-green-600 text-white font-medium py-1 px-3 rounded focus:outline-none focus:ring-2 focus:ring-green-300"
@@ -854,7 +901,7 @@ const CoatingInspectionForm = () => {
                             <td className="border-b border-gray-800 p-2 text-center h-12">
                               <input
                                 type="text"
-                                value={char.bodyThickness}
+                                value={char.bodyThickness || ''}
                                 onChange={(e) => handleCharChange(index, 'bodyThickness', e.target.value)}
                                 disabled={!permissions.canEditCharacteristics}
                                 className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
@@ -866,7 +913,7 @@ const CoatingInspectionForm = () => {
                             <td className="p-2 text-center h-12">
                               <input
                                 type="text"
-                                value={char.bottomThickness}
+                                value={char.bottomThickness || ''}
                                 onChange={(e) => handleCharChange(index, 'bottomThickness', e.target.value)}
                                 disabled={!permissions.canEditCharacteristics}
                                 className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
@@ -878,7 +925,7 @@ const CoatingInspectionForm = () => {
                     ) : (
                       <input
                         type="text"
-                        value={char.observation}
+                        value={char.observation || ''}
                         onChange={(e) => handleCharChange(index, 'observation', e.target.value)}
                         disabled={!permissions.canEditCharacteristics}
                         className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
@@ -888,7 +935,7 @@ const CoatingInspectionForm = () => {
                   <td className="border border-gray-800 p-2">
                     <input
                       type="text"
-                      value={char.comments}
+                      value={char.comments || ''}
                       onChange={(e) => handleCharChange(index, 'comments', e.target.value)}
                       disabled={!permissions.canEditCharacteristics}
                       className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
@@ -922,7 +969,7 @@ const CoatingInspectionForm = () => {
                     {/* Fallback if image fails to load */}
                     <div
                       className="h-12 border border-dashed border-gray-400 hidden items-center justify-center w-full"
-                      title={`Signed by: ${formData.qaExecutive}`}
+                      title={`Signed by: ${formData.qaName}`}
                     >
                       <span className="text-xs text-gray-500">Signed digitally</span>
                     </div>
@@ -954,7 +1001,7 @@ const CoatingInspectionForm = () => {
                     {/* Fallback if image fails to load */}
                     <div
                       className="h-12 border border-dashed border-gray-400 hidden items-center justify-center w-full"
-                      title={`Signed by: ${formData.productionOperator}`}
+                      title={`Signed by: ${formData.operatorName}`}
                     >
                       <span className="text-xs text-gray-500">Signed digitally</span>
                     </div>
@@ -971,8 +1018,8 @@ const CoatingInspectionForm = () => {
             <span className="font-semibold">Time (Final Approval) : </span>
             <input
               type="text"
-              name="finalApprovalTime"
-              value={formData.finalApprovalTime}
+              name="approvalTime"
+              value={formData.approvalTime}
               onChange={handleChange}
               disabled={!(permissions.canApprove || permissions.canEditDocumentInfo)}
               className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
@@ -981,50 +1028,48 @@ const CoatingInspectionForm = () => {
         </div>
 
         {/* Review Information */}
-        {
-          (formData.status === 'SUBMITTED' || formData.status === 'APPROVED' || formData.status === 'REJECTED') && (
-            <div className="border-x border-b border-gray-800 p-4 bg-gray-50">
-              <h3 className="font-semibold text-gray-700 mb-2">Review Information</h3>
+        {(formData.status === 'SUBMITTED' || formData.status === 'APPROVED' || formData.status === 'REJECTED') && (
+          <div className="border-x border-b border-gray-800 p-4 bg-gray-50">
+            <h3 className="font-semibold text-gray-700 mb-2">Review Information</h3>
 
-              {formData.submittedBy && (
-                <div className="text-sm mb-1">
-                  <span className="font-medium">Submitted by:</span> {formData.submittedBy}
-                  {formData.submittedAt && (
-                    <span className="ml-1 text-gray-500">
-                      on {new Date(formData.submittedAt).toLocaleString()}
-                    </span>
-                  )}
-                </div>
-              )}
+            {formData.submittedBy && (
+              <div className="text-sm mb-1">
+                <span className="font-medium">Submitted by:</span> {formData.submittedBy}
+                {formData.submittedAt && (
+                  <span className="ml-1 text-gray-500">
+                    on {new Date(formData.submittedAt).toLocaleString()}
+                  </span>
+                )}
+              </div>
+            )}
 
-              {formData.reviewedBy && (
-                <div className="text-sm mb-1">
-                  <span className="font-medium">Reviewed by:</span> {formData.reviewedBy}
-                  {formData.reviewedAt && (
-                    <span className="ml-1 text-gray-500">
-                      on {new Date(formData.reviewedAt).toLocaleString()}
-                    </span>
-                  )}
-                </div>
-              )}
+            {formData.reviewedBy && (
+              <div className="text-sm mb-1">
+                <span className="font-medium">Reviewed by:</span> {formData.reviewedBy}
+                {formData.reviewedAt && (
+                  <span className="ml-1 text-gray-500">
+                    on {new Date(formData.reviewedAt).toLocaleString()}
+                  </span>
+                )}
+              </div>
+            )}
 
-              {formData.comments && (
-                <div className="mt-2">
-                  <span className="font-medium text-sm">Comments:</span>
-                  <div className="p-2 bg-white border border-gray-300 rounded mt-1 text-sm">
-                    {formData.comments}
-                  </div>
+            {formData.comments && (
+              <div className="mt-2">
+                <span className="font-medium text-sm">Comments:</span>
+                <div className="p-2 bg-white border border-gray-300 rounded mt-1 text-sm">
+                  {formData.comments}
                 </div>
-              )}
-            </div>
-          )
-        }
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Action Buttons */}
         <div className="p-4 bg-gray-100 flex justify-between">
           <button
             type="button"
-            onClick={() => navigate('/forms')}
+            onClick={() => navigate('/forms/coating')}
             className="bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-gray-300"
           >
             Back to Forms
@@ -1100,7 +1145,7 @@ const CoatingInspectionForm = () => {
               </button>
             )}
 
-            {/* Download PDF button - visible to master and when approved */}
+            {/* Download PDF button - visible when approved */}
             {permissions.canDownloadPdf && (
               <button
                 type="button"
@@ -1110,7 +1155,9 @@ const CoatingInspectionForm = () => {
                 Download PDF
               </button>
             )}
-            {permissions.canDownloadPdf && (
+            
+            {/* Email PDF button - visible when approved */}
+            {permissions.canEmailPdf && (
               <button
                 type="button"
                 onClick={() => setIsEmailModalOpen(true)}
@@ -1126,4 +1173,4 @@ const CoatingInspectionForm = () => {
   );
 };
 
-export default CoatingInspectionForm;     
+export default CoatingInspectionForm;
