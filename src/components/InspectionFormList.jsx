@@ -6,6 +6,7 @@ import { inspectionFormAPI } from './services/api';
 import { lineClearanceAPI } from './forms/line_clearance_form/lineClearanceAPI';
 import { coatingInspectionAPI } from './forms/fair-coating/coatingInspectionAPI';
 import { printingInspectionAPI } from './services/api';
+import { QualityInspectionAPI } from './forms/qulality _inspection_form/QualityInspectionAPI';
 
 const InspectionFormList = () => {
   const { formType } = useParams(); // Get the form type from URL params
@@ -31,8 +32,8 @@ const InspectionFormList = () => {
         return 'FIRST ARTICLE INSPECTION REPORT - PRINTING';
       case 'clearance':
         return 'Line Clearance Report';
-      case 'pricing':
-        return 'Incoming Qulality Inspection Report';
+      case 'quality':
+        return 'Incoming Quality Inspection Report';
       case 'maintenance':
         return 'Maintenance Request Forms';
       case 'inventory':
@@ -66,6 +67,8 @@ const InspectionFormList = () => {
         api = printingInspectionAPI;
       } else if (activeFormType === 'clearance') {
         api = lineClearanceAPI;
+      } else if (activeFormType === 'quality') {
+        api = QualityInspectionAPI;
       } else {
         // For new form types, you'll need to add corresponding APIs
         // For now, show a placeholder message
@@ -85,6 +88,8 @@ const InspectionFormList = () => {
           data = await api.getAllReports(); // or other appropriate method
           // Filter the data client-side if needed
           data = data.filter(report => report.submittedBy === user.name);
+        } else if (activeFormType === 'quality') {
+          data = await api.getReportsBySubmitter(user.name);
         } else {
           data = await api.getFormsBySubmitter(user.name);
         }
@@ -96,6 +101,8 @@ const InspectionFormList = () => {
           data = await api.getReportsByStatus('SUBMITTED');
         } else if (activeFormType === 'printing') {
           // For printing forms, use the methods available in the printingInspectionAPI
+          data = await api.getReportsByStatus('SUBMITTED');
+        } else if (activeFormType === 'quality') {
           data = await api.getReportsByStatus('SUBMITTED');
         } else {
           data = await api.getFormsByStatus('SUBMITTED');
@@ -130,7 +137,7 @@ const InspectionFormList = () => {
 
     // Apply date filter if provided
     if (dateRange.from || dateRange.to) {
-      const dateField = activeFormType === 'clearance' ? 'reportDate' : 'inspectionDate';
+      const dateField = getDateField();
 
       if (dateRange.from) {
         filtered = filtered.filter(form =>
@@ -205,7 +212,13 @@ const InspectionFormList = () => {
 
   // Get form-specific field name based on form type
   const getDateField = () => {
-    return activeFormType === 'clearance' ? 'reportDate' : 'inspectionDate';
+    if (activeFormType === 'clearance') {
+      return 'reportDate';
+    } else if (activeFormType === 'quality') {
+      return 'iqcDate';
+    } else {
+      return 'inspectionDate';
+    }
   };
 
   // Helper to get the appropriate line type data for clearance forms
@@ -214,6 +227,8 @@ const InspectionFormList = () => {
       return form.line || form.productionArea || 'N/A';
     } else if (activeFormType === 'coating') {
       return form.lineNo || 'N/A';
+    } else if (activeFormType === 'quality') {
+      return form.productReceivedFrom || 'N/A';
     }
     return form.lineType || 'N/A';
   };
@@ -224,6 +239,8 @@ const InspectionFormList = () => {
       return form.newVariantName || form.newVariantDescription || 'N/A';
     } else if (activeFormType === 'coating') {
       return form.variant || 'N/A';
+    } else if (activeFormType === 'quality') {
+      return form.batchNumber || 'N/A';
     }
     return form.variant || 'N/A';
   };
@@ -234,6 +251,8 @@ const InspectionFormList = () => {
       return form.productName || 'N/A';
     } else if (activeFormType === 'coating') {
       return form.product || 'N/A';
+    } else if (activeFormType === 'quality') {
+      return form.productVariantName || 'N/A';
     }
     return form.product || 'N/A';
   };
@@ -247,6 +266,7 @@ const InspectionFormList = () => {
     if (activeFormType === 'coating') prefix += '-CTF';
     else if (activeFormType === 'printing') prefix += '-PTF';
     else if (activeFormType === 'clearance') prefix += '-LCF';
+    else if (activeFormType === 'quality') prefix += '-IQC';
     else prefix += `-${activeFormType.substring(0, 3).toUpperCase()}`;
 
     const date = new Date(dateStr);
@@ -263,7 +283,7 @@ const InspectionFormList = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center">
               <Link
-                to="/forms-dashboard"
+                to="/"
                 className="mr-4 p-1 rounded-full hover:bg-gray-100"
                 aria-label="Back to dashboard"
               >
@@ -282,7 +302,13 @@ const InspectionFormList = () => {
                 onClick={handleCreateForm}
                 className="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition-colors"
               >
-                Create New {activeFormType === 'coating' ? 'Coating' : activeFormType === 'printing' ? 'Printing' : activeFormType === 'clearance' ? 'Line Clearance' : activeFormType.charAt(0).toUpperCase() + activeFormType.slice(1)} Form
+                Create New {
+                  activeFormType === 'coating' ? 'Coating' : 
+                  activeFormType === 'printing' ? 'Printing' : 
+                  activeFormType === 'clearance' ? 'Line Clearance' : 
+                  activeFormType === 'quality' ? 'Quality Inspection' :
+                  activeFormType.charAt(0).toUpperCase() + activeFormType.slice(1)
+                } Form
               </button>
             )}
           </div>
@@ -405,7 +431,13 @@ const InspectionFormList = () => {
                 onClick={handleCreateForm}
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium shadow-sm hover:bg-blue-700"
               >
-                Create your first {activeFormType} form
+                Create your first {
+                  activeFormType === 'coating' ? 'Coating' : 
+                  activeFormType === 'printing' ? 'Printing' : 
+                  activeFormType === 'clearance' ? 'Line Clearance' : 
+                  activeFormType === 'quality' ? 'Quality Inspection' :
+                  activeFormType
+                } form
               </button>
             )}
           </div>
@@ -427,7 +459,7 @@ const InspectionFormList = () => {
                           Product
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Variant
+                          {activeFormType === 'quality' ? 'Batch #' : 'Variant'}
                         </th>
                       </>
                     )}
@@ -444,6 +476,11 @@ const InspectionFormList = () => {
                         </th>
                       </>
                     )}
+                    {activeFormType === 'quality' && (
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Supplier
+                      </th>
+                    )}
                     <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
@@ -458,7 +495,7 @@ const InspectionFormList = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {filteredForms.length === 0 ? (
                     <tr>
-                      <td colSpan={(activeFormType === 'clearance' ? 8 : 7)} className="px-6 py-4 text-center text-sm text-gray-500">
+                      <td colSpan={(activeFormType === 'clearance' ? 8 : activeFormType === 'quality' ? 7 : 7)} className="px-6 py-4 text-center text-sm text-gray-500">
                         No forms match your filter criteria. <button onClick={clearFilters} className="text-blue-600 hover:text-blue-800">Clear filters</button>
                       </td>
                     </tr>
@@ -493,6 +530,11 @@ const InspectionFormList = () => {
                               {getVariantValue(form)}
                             </td>
                           </>
+                        )}
+                        {activeFormType === 'quality' && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {getLineTypeValue(form)}
+                          </td>
                         )}
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 py-1 inline-flex items-center text-xs leading-5 font-semibold rounded-full ${getStatusBadgeClass(form.status)}`}>

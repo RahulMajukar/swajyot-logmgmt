@@ -12,6 +12,7 @@ import { AuthProvider, useAuth } from './components/context/AuthContext';
 import QADashboard from './components/dashboards/QADashboard';
 import Chatbot from './components/Chatbot';
 import CoatingInspectionForm from './components/forms/fair-coating/CoatingInspectionForm';
+import QualityInspectionForm from './components/forms/qulality _inspection_form/QualityInspectionForm';
 
 // Footer component
 const Footer = () => {
@@ -201,6 +202,22 @@ const AuthRouter = () => {
         isAuthenticated ? (
           <InspectionFormLayout user={user} onLogout={logout}>
             <LineClearanceForm />
+          </InspectionFormLayout>
+        ) : <Navigate to="/" replace />
+      } />
+      
+      {/* Quality Inspection Forms */}
+      <Route path="/forms/quality/new" element={
+        isAuthenticated ? (
+          <InspectionFormLayout user={user} onLogout={logout}>
+            <QualityInspectionForm isNew={true} />
+          </InspectionFormLayout>
+        ) : <Navigate to="/" replace />
+      } />
+      <Route path="/forms/quality/:id" element={
+        isAuthenticated ? (
+          <InspectionFormLayout user={user} onLogout={logout}>
+            <QualityInspectionForm />
           </InspectionFormLayout>
         ) : <Navigate to="/" replace />
       } />
