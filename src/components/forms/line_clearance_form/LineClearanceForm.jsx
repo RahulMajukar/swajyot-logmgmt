@@ -114,31 +114,31 @@ const LineClearanceForm = () => {
         scope: 'AGI / DEC / COATING & PRINTING',
         unit: 'AGI Speciality Glass Division',
     });
-    
+
     // Utility function to sanitize form data
     const sanitizeFormData = (formData) => {
         // Create a deep copy to avoid modifying the original
         const sanitized = JSON.parse(JSON.stringify(formData));
-        
+
         // Convert dates to proper format if they're strings
         if (sanitized.reportDate && typeof sanitized.reportDate === 'string') {
-            sanitized.reportDate = sanitized.reportDate.includes('T') 
-                ? sanitized.reportDate 
+            sanitized.reportDate = sanitized.reportDate.includes('T')
+                ? sanitized.reportDate
                 : sanitized.reportDate + 'T00:00:00';
         }
-        
+
         if (sanitized.effectiveDate && typeof sanitized.effectiveDate === 'string') {
-            sanitized.effectiveDate = sanitized.effectiveDate.includes('T') 
-                ? sanitized.effectiveDate 
+            sanitized.effectiveDate = sanitized.effectiveDate.includes('T')
+                ? sanitized.effectiveDate
                 : sanitized.effectiveDate + 'T00:00:00';
         }
-        
+
         if (sanitized.reviewedOn && typeof sanitized.reviewedOn === 'string') {
-            sanitized.reviewedOn = sanitized.reviewedOn.includes('T') 
-                ? sanitized.reviewedOn 
+            sanitized.reviewedOn = sanitized.reviewedOn.includes('T')
+                ? sanitized.reviewedOn
                 : sanitized.reviewedOn + 'T00:00:00';
         }
-        
+
         // Ensure ProductionArea field is included and properly formatted
         if (sanitized.line === 'COATING') {
             sanitized.productionArea = 'COATING';
@@ -146,8 +146,11 @@ const LineClearanceForm = () => {
             sanitized.productionArea = 'PRINTING';
         } else if (sanitized.line === 'BOTH') {
             sanitized.productionArea = 'BOTH';
+        } else {
+            // Set default value if line is not selected
+            sanitized.productionArea = null; // This will prevent sending an empty string
         }
-        
+
         // Make sure checkPoints are properly formatted
         if (sanitized.checkPoints) {
             sanitized.checkPoints = sanitized.checkPoints.map(point => ({
@@ -157,7 +160,7 @@ const LineClearanceForm = () => {
                 remarks: point.remarks || ''
             }));
         }
-        
+
         return sanitized;
     };
 
@@ -165,7 +168,7 @@ const LineClearanceForm = () => {
     const mapFormDataToModel = (formData) => {
         // Create a sanitized version of the form data
         const sanitized = sanitizeFormData(formData);
-        
+
         // Make sure it matches the backend LineClearanceReport model
         return {
             ...sanitized,
@@ -210,7 +213,7 @@ const LineClearanceForm = () => {
             setSaving(false);
         }
     };
-    
+
     // Function to download PDF
     const downloadPdf = async () => {
         try {
@@ -233,7 +236,7 @@ const LineClearanceForm = () => {
             alert('Failed to send email. Please try again.');
         }
     };
-      
+
     function formatTimeForDisplay(isoString) {
         if (!isoString) return '';
         const date = new Date(isoString);
@@ -252,7 +255,7 @@ const LineClearanceForm = () => {
                 try {
                     setLoading(true);
                     const data = await lineClearanceAPI.getReportById(id);
-                    
+
                     // Process dates for UI display
                     setFormData({
                         ...data,
@@ -503,10 +506,14 @@ const LineClearanceForm = () => {
                             <span className="font-semibold">EXISTING VARIANT / PRODUCT STOP TIME: </span>
                             {permissions.canEditDetails ? (
                                 <input
-                                    type="text"
-                                    value={formatTimeForDisplay(formData.existingVariantStopTime)}
-                                    onChange={(e) => handleTimeChange('existingVariantStopTime', e.target.value)}
-                                    placeholder="e.g. 7:50 PM"
+                                    type="time"
+                                    value={formData.existingVariantStopTime ? new Date(formData.existingVariantStopTime).toISOString().substring(11, 16) : ''}
+                                    onChange={(e) => {
+                                        const [hour, minute] = e.target.value.split(':');
+                                        const date = new Date();
+                                        date.setHours(hour, minute, 0, 0);
+                                        handleTimeChange('existingVariantStopTime', formatTimeForDisplay(date.toISOString()));
+                                    }}
                                     className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 w-32"
                                 />
                             ) : (
@@ -517,16 +524,21 @@ const LineClearanceForm = () => {
                             <span className="font-semibold">NEW VARIANT / PRODUCT START TIME: </span>
                             {permissions.canEditDetails ? (
                                 <input
-                                    type="text"
-                                    value={formatTimeForDisplay(formData.newVariantStartTime)}
-                                    onChange={(e) => handleTimeChange('newVariantStartTime', e.target.value)}
-                                    placeholder="e.g. 8:50 PM"
+                                    type="time"
+                                    value={formData.newVariantStartTime ? new Date(formData.newVariantStartTime).toISOString().substring(11, 16) : ''}
+                                    onChange={(e) => {
+                                        const [hour, minute] = e.target.value.split(':');
+                                        const date = new Date();
+                                        date.setHours(hour, minute, 0, 0);
+                                        handleTimeChange('newVariantStartTime', formatTimeForDisplay(date.toISOString()));
+                                    }}
                                     className="px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 w-32"
                                 />
                             ) : (
                                 <span>{formatTimeForDisplay(formData.newVariantStartTime)}</span>
                             )}
                         </div>
+
                     </div>
 
                     {/* Checkpoints Table */}

@@ -79,33 +79,46 @@ const InspectionFormList = () => {
       if (user.role.toLowerCase() === 'operator') {
         // Operators see their own submissions
         if (activeFormType === 'clearance') {
-          data = await api.getReportsBySubmitter(user.name);
+          // data = await api.getReportsBySubmitter(user.name);
+           data = await api.getAllReports();
+
         } else if (activeFormType === 'coating') {
           // For coating forms, use the appropriate methods
-          data = await api.getReportsBySubmitter(user.name);
+          // data = await api.getReportsBySubmitter(user.name);
+           data = await api.getAllReports();
+
         } else if (activeFormType === 'printing') {
           // For printing forms, use the methods available in the printingInspectionAPI
-          data = await api.getAllReports(); // or other appropriate method
+          data = await api.getAllReports(); 
           // Filter the data client-side if needed
-          data = data.filter(report => report.submittedBy === user.name);
+          // data = data.filter(report => report.submittedBy === user.name);
         } else if (activeFormType === 'quality') {
-          data = await api.getReportsBySubmitter(user.name);
+          // data = await api.getReportsBySubmitter(user.name);
+           data = await api.getAllReports();
+
         } else {
-          data = await api.getFormsBySubmitter(user.name);
+          // data = await api.getFormsBySubmitter(user.name);
+           data = await api.getAllReports();
+
         }
       } else if (user.role.toLowerCase() === 'qa' || user.role.toLowerCase() === 'avp') {
         // QA and AVP see submitted forms that need approval
         if (activeFormType === 'clearance') {
-          data = await api.getReportsByStatus('SUBMITTED');
+          // data = await api.getReportsByStatus('SUBMITTED');
+           data = await api.getAllReports();
         } else if (activeFormType === 'coating') {
-          data = await api.getReportsByStatus('SUBMITTED');
+          // data = await api.getReportsByStatus('SUBMITTED');
+           data = await api.getAllReports();
         } else if (activeFormType === 'printing') {
           // For printing forms, use the methods available in the printingInspectionAPI
-          data = await api.getReportsByStatus('SUBMITTED');
+          // data = await api.getReportsByStatus('SUBMITTED');
+           data = await api.getAllReports();
         } else if (activeFormType === 'quality') {
-          data = await api.getReportsByStatus('SUBMITTED');
+          // data = await api.getReportsByStatus('SUBMITTED');
+           data = await api.getAllReports();
         } else {
-          data = await api.getFormsByStatus('SUBMITTED');
+          // data = await api.getFormsByStatus('SUBMITTED');
+           data = await api.getAllReports();
         }
       } else if (user.role.toLowerCase() === 'master') {
         // Masters see all forms

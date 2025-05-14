@@ -50,9 +50,9 @@ const CoatingInspectionForm = ({ isNew }) => {
 
   // Default coating details
   const defaultCoatingDetails = [
-    { id: 1, lacquerType: 'Clear Extn', batchNo: '', quantity: '', numberOfPieces: '', expiryDate: '' },
-    { id: 2, lacquerType: 'Red Dye', batchNo: '', quantity: '', numberOfPieces: '', expiryDate: '' }
-  ];
+    { id: 1, lacquerType: 'Clear Extn', batchNo: '', quantity: '', expiryDate: '' },
+    { id: 2, lacquerType: 'Red Dye', batchNo: '', quantity: '',  expiryDate: '' }
+  ]
 
   // State for form data
   const [formData, setFormData] = useState({
@@ -742,7 +742,7 @@ const CoatingInspectionForm = ({ isNew }) => {
                 <th className="border border-gray-800 p-2 bg-gray-200">Lacquer / Dye</th>
                 <th className="border border-gray-800 p-2 bg-gray-200">Batch No.</th>
                 <th className="border border-gray-800 p-2 bg-gray-200">Qty.</th>
-                <th className="border border-gray-800 p-2 bg-gray-200">No. of Pieces</th>
+                {/* <th className="border border-gray-800 p-2 bg-gray-200">No. of Pieces</th> */}
                 <th className="border border-gray-800 p-2 bg-gray-200">Expiry Date</th>
               </tr>
             </thead>
@@ -806,7 +806,7 @@ const CoatingInspectionForm = ({ isNew }) => {
                         )}
                       </div>
                     </td>
-                    <td className="border border-gray-800 p-2 text-center">
+                    {/* <td className="border border-gray-800 p-2 text-center">
                       {permissions.canEditCoatingDetails ? (
                         <input
                           type="text"
@@ -817,7 +817,7 @@ const CoatingInspectionForm = ({ isNew }) => {
                       ) : (
                         <div>{detail.numberOfPieces}</div>
                       )}
-                    </td>
+                    </td> */}
                     <td className="border border-gray-800 p-2 text-center">
                       {permissions.canEditCoatingDetails ? (
                         <input
@@ -847,7 +847,7 @@ const CoatingInspectionForm = ({ isNew }) => {
 
                 const updatedDetails = [
                   ...formData.coatingDetails,
-                  { id: newId, lacquerType: '', batchNo: '', quantity: '', numberOfPieces: '', expiryDate: '' }
+                  { id: newId, lacquerType: '', batchNo: '', quantity: '', expiryDate: '' }
                 ];
 
                 setFormData({
