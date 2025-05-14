@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate, useLocat
 import LoginForm from './components/LoginForm';
 import OperatorDashboard from './components/dashboards/OperatorDashboard';
 import AVPDashboard from './components/dashboards/AVPDashboard';
-import MasterDashboard from './components/dashboards/MasterDashboard';
+import MasterDashboard from './components/dashboards/master/MasterDashboard';
 import InspectionFormList from './components/InspectionFormList';
 import PrintingInspectionForm from './components/forms/printing-inspection-form/PrintingInspectionForm';
 import LineClearanceForm from './components/forms/line_clearance_form/LineClearanceForm';
@@ -62,7 +62,7 @@ const InspectionFormLayout = ({ user, onLogout, children }) => {
         {children}
       </div>
       <Footer />
-      {/* {user && <Chatbot user={user} />} */}
+      {user && <Chatbot user={user} />}
     </div>
   );
 };
