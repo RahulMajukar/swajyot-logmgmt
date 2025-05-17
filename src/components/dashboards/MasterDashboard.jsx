@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { inspectionFormAPI } from '../../services/api';
-import FormDashboard from '../FormDashboard';
-import AdminSidebar from './AdminSidebar';
-import UserManagement from './UserManagement';
-import RoleManagement from './RoleManagement';
-import AboutUs from './AboutUs';
+import { inspectionFormAPI } from '../services/api';
+import { DashboardLayout } from '../SharedComponents';
+import FormDashboard from './FormDashboard';
+import AdminSidebar from './admin/AdminSidebar';
+import UserManagement from './admin/UserManagement';
+import RoleManagement from './admin/RoleManagement';
+import FormsAnalytics from './admin/FormsAnalytics';
+import AboutUs from './admin/AboutUs';
 import { FaBars } from 'react-icons/fa';
+import logo from '../../assets/Qsutra RMS Square Blue.png';
 
 const MasterDashboard = ({ user, onLogout }) => {
   const navigate = useNavigate();
@@ -131,6 +134,8 @@ const MasterDashboard = ({ user, onLogout }) => {
     switch (activeSection) {
       case 'dashboard':
         return <FormDashboard user={user} onLogout={onLogout} />;
+      case 'forms-analytics':
+        return <FormsAnalytics />;
       case 'user-management':
         return <UserManagement />;
       case 'role-management':
@@ -145,15 +150,15 @@ const MasterDashboard = ({ user, onLogout }) => {
   return (
     <div className="flex min-h-screen bg-gray-100">
       {sidebarVisible && (
-        <AdminSidebar 
-          user={user} 
+        <AdminSidebar
+          user={user}
           onLogout={onLogout}
           activeSection={activeSection}
           setActiveSection={setActiveSection}
         />
       )}
       <div className="flex-1">
-        <div className="bg-blue-600 text-white p-4 flex justify-between items-center shadow-md">
+        <div className="bg-gradient-to-b from-purple-600 via-violet-500 to-purple-400 text-white p-4 flex justify-between items-center shadow-md">
           <div className="flex items-center">
             <button
               onClick={toggleSidebar}
@@ -162,6 +167,12 @@ const MasterDashboard = ({ user, onLogout }) => {
             >
               <FaBars size={20} />
             </button>
+            {/* Logo image before the Dashboard title */}
+            <img
+              src="http://localhost:5173/src/assets/QSUTRALogo.png"
+              alt="Dashboard Logo"
+              className="h-8 mr-3"
+            />
             <h1 className="text-xl font-bold">
               Master Dashboard: {activeSection.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
             </h1>

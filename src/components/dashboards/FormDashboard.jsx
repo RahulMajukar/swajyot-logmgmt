@@ -157,7 +157,7 @@ const FormDashboard = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-12">
+    <div className="bg-gray-50 pb-12">
 
       <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 pt-8">
         <div className="mb-8 flex flex-col md:flex-row gap-4">

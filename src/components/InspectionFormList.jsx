@@ -289,7 +289,7 @@ const InspectionFormList = () => {
   };
 
   return (
-    <div className="bg-gray-50 min-h-screen pb-12">
+    <div className="bg-gray-50 pb-12">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
