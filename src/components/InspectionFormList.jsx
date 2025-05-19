@@ -80,45 +80,45 @@ const InspectionFormList = () => {
         // Operators see their own submissions
         if (activeFormType === 'clearance') {
           // data = await api.getReportsBySubmitter(user.name);
-           data = await api.getAllReports();
+          data = await api.getAllReports();
 
         } else if (activeFormType === 'coating') {
           // For coating forms, use the appropriate methods
           // data = await api.getReportsBySubmitter(user.name);
-           data = await api.getAllReports();
+          data = await api.getAllReports();
 
         } else if (activeFormType === 'printing') {
           // For printing forms, use the methods available in the printingInspectionAPI
-          data = await api.getAllReports(); 
+          data = await api.getAllReports();
           // Filter the data client-side if needed
           // data = data.filter(report => report.submittedBy === user.name);
         } else if (activeFormType === 'quality') {
           // data = await api.getReportsBySubmitter(user.name);
-           data = await api.getAllReports();
+          data = await api.getAllReports();
 
         } else {
           // data = await api.getFormsBySubmitter(user.name);
-           data = await api.getAllReports();
+          data = await api.getAllReports();
 
         }
       } else if (user.role.toLowerCase() === 'qa' || user.role.toLowerCase() === 'avp') {
         // QA and AVP see submitted forms that need approval
         if (activeFormType === 'clearance') {
           // data = await api.getReportsByStatus('SUBMITTED');
-           data = await api.getAllReports();
+          data = await api.getAllReports();
         } else if (activeFormType === 'coating') {
           // data = await api.getReportsByStatus('SUBMITTED');
-           data = await api.getAllReports();
+          data = await api.getAllReports();
         } else if (activeFormType === 'printing') {
           // For printing forms, use the methods available in the printingInspectionAPI
           // data = await api.getReportsByStatus('SUBMITTED');
-           data = await api.getAllReports();
+          data = await api.getAllReports();
         } else if (activeFormType === 'quality') {
           // data = await api.getReportsByStatus('SUBMITTED');
-           data = await api.getAllReports();
+          data = await api.getAllReports();
         } else {
           // data = await api.getFormsByStatus('SUBMITTED');
-           data = await api.getAllReports();
+          data = await api.getAllReports();
         }
       } else if (user.role.toLowerCase() === 'master') {
         // Masters see all forms
@@ -316,11 +316,11 @@ const InspectionFormList = () => {
                 className="mt-4 sm:mt-0 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition-colors"
               >
                 Create New {
-                  activeFormType === 'coating' ? 'Coating' : 
-                  activeFormType === 'printing' ? 'Printing' : 
-                  activeFormType === 'clearance' ? 'Line Clearance' : 
-                  activeFormType === 'quality' ? 'Quality Inspection' :
-                  activeFormType.charAt(0).toUpperCase() + activeFormType.slice(1)
+                  activeFormType === 'coating' ? 'Coating' :
+                    activeFormType === 'printing' ? 'Printing' :
+                      activeFormType === 'clearance' ? 'Line Clearance' :
+                        activeFormType === 'quality' ? 'Quality Inspection' :
+                          activeFormType.charAt(0).toUpperCase() + activeFormType.slice(1)
                 } Form
               </button>
             )}
@@ -333,14 +333,14 @@ const InspectionFormList = () => {
         <div className="bg-white rounded-lg shadow-sm mb-6 overflow-hidden">
           <div className="p-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-lg font-medium text-gray-900">Filters</h2>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="text-gray-500 hover:text-gray-700 flex items-center text-sm font-medium"
-            >
-              <Filter className="h-4 w-4 mr-1" />
-              {showFilters ? 'Hide Filters' : 'Show Filters'}
-            </button>
-          </div>
+              <button
+                onClick={() => setShowFilters(!showFilters)}
+                className="text-gray-500 hover:text-gray-700 flex items-center text-sm font-medium"
+              >
+                <Filter className="h-4 w-4 mr-1" />
+                {showFilters ? 'Hide Filters' : 'Show Filters'}
+              </button>
+            </div>
 
           {showFilters && (
             <div className="p-4 bg-gray-50 border-b border-gray-200">
@@ -404,12 +404,21 @@ const InspectionFormList = () => {
             </div>
 
             <div className="flex space-x-2">
-              <button className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100">
-                <Printer className="h-5 w-5" />
-              </button>
-              <button className="p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100">
-                <Download className="h-5 w-5" />
-              </button>
+              {/* Right: Create New Form button */}
+              {user.role.toLowerCase() === 'operator' && (
+                <button
+                  onClick={handleCreateForm}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm transition-colors"
+                >
+                  + Create New {
+                    activeFormType === 'coating' ? 'Coating' :
+                      activeFormType === 'printing' ? 'Printing' :
+                        activeFormType === 'clearance' ? 'Line Clearance' :
+                          activeFormType === 'quality' ? 'Quality Inspection' :
+                            activeFormType.charAt(0).toUpperCase() + activeFormType.slice(1)
+                  } Form
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -445,11 +454,11 @@ const InspectionFormList = () => {
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium shadow-sm hover:bg-blue-700"
               >
                 Create your first {
-                  activeFormType === 'coating' ? 'Coating' : 
-                  activeFormType === 'printing' ? 'Printing' : 
-                  activeFormType === 'clearance' ? 'Line Clearance' : 
-                  activeFormType === 'quality' ? 'Quality Inspection' :
-                  activeFormType
+                  activeFormType === 'coating' ? 'Coating' :
+                    activeFormType === 'printing' ? 'Printing' :
+                      activeFormType === 'clearance' ? 'Line Clearance' :
+                        activeFormType === 'quality' ? 'Quality Inspection' :
+                          activeFormType
                 } form
               </button>
             )}
