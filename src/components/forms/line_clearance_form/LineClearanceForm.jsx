@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 import { lineClearanceAPI } from './lineClearanceAPI';
 import { FormHeader, StatusBanner, FormActionButtons } from '../CommonCode';
 import EmailModal from '../../EmailModal';
-
+import QASign from '../../../assets/QASign.png'
+import OperatorSign from '../../../assets/OperatorSign.png'
 const LineClearanceForm = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -615,33 +616,44 @@ const LineClearanceForm = () => {
                     {/* Signatures */}
                     <div className="grid grid-cols-2 border-t border-gray-800">
                         {/* Production Signature */}
-                        <div className="border-r border-gray-800 flex justify-center items-center h-24">
-                            {formData.productionSignature ? (
-                                <img
-                                    src="/assets/OperatorSign.png"
-                                    alt="Production Signature"
-                                    className="h-12"
-                                    onError={(e) => (e.target.style.display = 'none')}
-                                />
+                        <div className="border-r border-gray-800 flex flex-col justify-start items-start h-24 pl-4 pt-2">
+                            {formData.productionSignature?.startsWith('signed_by_') ? (
+                                <>
+                                    <img
+                                        src={OperatorSign}
+                                        alt="Production Signature"
+                                        className="h-12"
+                                        onError={(e) => (e.target.style.display = 'none')}
+                                    />
+                                    {/* {formData.productionName && (
+                                        <span className="text-xs text-gray-600 mt-1">Signed by {formData.productionName}</span>
+                                    )} */}
+                                </>
                             ) : (
                                 <div className="text-gray-400 text-xs">Signature</div>
                             )}
                         </div>
 
                         {/* Quality Signature */}
-                        <div className="flex justify-center items-center h-24">
-                            {formData.qualitySignature ? (
-                                <img
-                                    src="/assets/QASign.png"
-                                    alt="Quality Signature"
-                                    className="h-12"
-                                    onError={(e) => (e.target.style.display = 'none')}
-                                />
+                        <div className="flex flex-col justify-start items-start h-24 pl-4 pt-2">
+                            {formData.qualitySignature?.startsWith('signed_by_') ? (
+                                <>
+                                    <img
+                                        src={QASign}
+                                        alt="Quality Signature"
+                                        className="h-12"
+                                        onError={(e) => (e.target.style.display = 'none')}
+                                    />
+                                    {/* {formData.qualityName && (
+                                        <span className="text-xs text-gray-600 mt-1">Signed by {formData.qualityName}</span>
+                                    )} */}
+                                </>
                             ) : (
                                 <div className="text-gray-400 text-xs">Signature</div>
                             )}
                         </div>
                     </div>
+
                 </div>
 
                 {/* Review Information (Only when Submitted / Approved / Rejected) */}

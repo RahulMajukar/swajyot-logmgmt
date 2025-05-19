@@ -566,7 +566,7 @@ const CoatingInspectionForm = ({ isNew }) => {
 
   return (
     <div className="flex justify-center bg-gray-100 p-4">
-      <form className="w-full max-w-4xl bg-white shadow-md pt-2">
+      <form className="w-full max-w-4xl bg-white shadow-md pt-16">
         {/* Email Modal Component */}
         <EmailModal
           isOpen={isEmailModalOpen}

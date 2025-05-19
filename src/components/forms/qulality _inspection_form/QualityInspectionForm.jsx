@@ -6,6 +6,7 @@ import { QualityInspectionAPI } from './QualityInspectionAPI';
 import EmailModal from '../../EmailModal';
 import QASign from '../../../assets/QASign.png';
 import OperatorSign from '../../../assets/OperatorSign.png';
+
 import { ArrowLeft, Info } from 'lucide-react';
 
 const QualityInspectionForm = ({ isNew = false }) => {
@@ -17,7 +18,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
   const [error, setError] = useState(null);
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [showAuditHistory, setShowAuditHistory] = useState(false);
-  
+
   // Define permissions based on user role and form status
   const [permissions, setPermissions] = useState({
     canEditDocumentInfo: false,
@@ -68,7 +69,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
     issued: 'QA Head',
     title: 'INCOMING QUALITY INSPECTION REPORT',
     scope: 'AGI / DEC / IQC',
-    
+
     // Status information
     status: 'DRAFT',
     submittedBy: '',
@@ -76,7 +77,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
     reviewedBy: '',
     reviewedAt: null,
     comments: '',
-    
+
     // Form-specific fields
     iqcDate: new Date().toISOString().split('T')[0],
     shift: 'A',
@@ -87,16 +88,16 @@ const QualityInspectionForm = ({ isNew = false }) => {
     productReceivedQuantity: '',
     quantityAudited: '',
     batchNumber: '',
-    
+
     // Audit results
     auditResults: defaultAuditResults,
-    
+
     // Test results
     testResults: defaultTestResults,
-    
+
     // Quality decision
     qualityDecision: '',
-    
+
     // Signature information
     qualityManagerName: '',
     qualityManagerSignature: '',
@@ -123,17 +124,17 @@ const QualityInspectionForm = ({ isNew = false }) => {
     try {
       setLoading(true);
       const data = await QualityInspectionAPI.getReportById(id);
-      
+
       // Initialize audit results if not present
       if (!data.auditResults || data.auditResults.length === 0) {
         data.auditResults = defaultAuditResults;
       }
-      
+
       // Initialize test results if not present
       if (!data.testResults || data.testResults.length === 0) {
         data.testResults = defaultTestResults;
       }
-      
+
       // Format dates for display
       const formattedData = {
         ...data,
@@ -142,12 +143,12 @@ const QualityInspectionForm = ({ isNew = false }) => {
         iqcDate: data.iqcDate?.split('T')[0],
         productReceivedDate: data.productReceivedDate?.split('T')[0]
       };
-      
+
       setReport(formattedData);
-      
+
       // Set permissions based on status and user role
       setPermissionsByStatus(formattedData.status);
-      
+
       // Build audit history from the data
       buildAuditHistory(formattedData);
     } catch (error) {
@@ -160,7 +161,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
 
   const buildAuditHistory = (data) => {
     const history = [];
-    
+
     // Creation
     history.push({
       action: 'Created',
@@ -168,7 +169,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
       user: data.createdBy || 'System',
       details: 'Form created'
     });
-    
+
     // Submission
     if (data.submittedBy && data.submittedAt) {
       history.push({
@@ -178,7 +179,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
         details: 'Submitted for approval'
       });
     }
-    
+
     // Review
     if (data.reviewedBy && data.reviewedAt) {
       const action = data.status === 'APPROVED' ? 'Approved' : 'Rejected';
@@ -189,7 +190,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
         details: data.comments || `${action} by reviewer`
       });
     }
-    
+
     setAuditHistory(history);
   };
 
@@ -198,7 +199,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
     const today = new Date();
     const year = today.getFullYear().toString().slice(-2);
     const random = Math.floor(1000 + Math.random() * 9000); // 4-digit number
-    
+
     setReport(prev => ({
       ...prev,
       documentNo: `AGI-IQC-${year}-${random}`
@@ -211,7 +212,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
     const isQA = userRole === 'qa';
     const isAVP = userRole === 'avp';
     const isMaster = userRole === 'master';
-    
+
     setPermissions({
       canEditDocumentInfo: isOperator || isMaster,
       canEditInspectionDetails: isOperator || isMaster,
@@ -234,7 +235,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
     const isQA = userRole === 'qa';
     const isAVP = userRole === 'avp';
     const isMaster = userRole === 'master';
-    
+
     switch (status) {
       case 'DRAFT':
         setPermissions({
@@ -322,7 +323,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
       [name]: value
     }));
   };
-  
+
   // Handle audit result changes
   const handleAuditResultChange = (index, field, value) => {
     const newAuditResults = [...report.auditResults];
@@ -330,13 +331,13 @@ const QualityInspectionForm = ({ isNew = false }) => {
       ...newAuditResults[index],
       [field]: field === 'count' ? (value === '' ? 0 : parseInt(value, 10)) : value
     };
-    
+
     setReport(prev => ({
       ...prev,
       auditResults: newAuditResults
     }));
   };
-  
+
   // Handle test result changes
   const handleTestResultChange = (index, field, value) => {
     const newTestResults = [...report.testResults];
@@ -344,13 +345,13 @@ const QualityInspectionForm = ({ isNew = false }) => {
       ...newTestResults[index],
       [field]: value
     };
-    
+
     setReport(prev => ({
       ...prev,
       testResults: newTestResults
     }));
   };
-  
+
   // Calculate total audit count
   const getTotalAuditCount = () => {
     return report.auditResults.reduce((total, item) => total + (item.count || 0), 0);
@@ -360,24 +361,24 @@ const QualityInspectionForm = ({ isNew = false }) => {
   const sanitizeFormData = (data) => {
     // Create a deep copy to avoid modifying the original
     const sanitized = JSON.parse(JSON.stringify(data));
-    
+
     // Format dates properly
     if (sanitized.effectiveDate && !sanitized.effectiveDate.includes('T')) {
       sanitized.effectiveDate += 'T00:00:00';
     }
-    
+
     if (sanitized.reviewedOn && !sanitized.reviewedOn.includes('T')) {
       sanitized.reviewedOn += 'T00:00:00';
     }
-    
+
     if (sanitized.iqcDate && !sanitized.iqcDate.includes('T')) {
       sanitized.iqcDate += 'T00:00:00';
     }
-    
+
     if (sanitized.productReceivedDate && !sanitized.productReceivedDate.includes('T')) {
       sanitized.productReceivedDate += 'T00:00:00';
     }
-    
+
     return sanitized;
   };
 
@@ -402,9 +403,9 @@ const QualityInspectionForm = ({ isNew = false }) => {
       }
 
       // If QA is approving/rejecting, add their signature
-      if ((user.role === 'qa' || user.role === 'avp') && 
-          (newStatus === 'APPROVED' || newStatus === 'REJECTED') && 
-          !updatedFormData.qualityManagerSignature) {
+      if ((user.role === 'qa' || user.role === 'avp') &&
+        (newStatus === 'APPROVED' || newStatus === 'REJECTED') &&
+        !updatedFormData.qualityManagerSignature) {
         updatedFormData.qualityManagerName = user.name;
         updatedFormData.qualityManagerSignature = `signed_by_${user.name.toLowerCase().replace(/\\s/g, '_')}`;
         updatedFormData.signatureDate = new Date().toISOString();
@@ -449,7 +450,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
       alert('Please fill in all required fields');
       return;
     }
-    
+
     try {
       await saveForm('SUBMITTED');
     } catch (error) {
@@ -609,26 +610,26 @@ const QualityInspectionForm = ({ isNew = false }) => {
   // Validate form before submission
   const validateForm = () => {
     // Check required fields
-    if (!report.iqcDate || 
-        !report.productVariantName || 
-        !report.productReceivedFrom || 
-        !report.productReceivedDate || 
-        !report.productReceivedQuantity || 
-        !report.quantityAudited || 
-        !report.batchNumber) {
+    if (!report.iqcDate ||
+      !report.productVariantName ||
+      !report.productReceivedFrom ||
+      !report.productReceivedDate ||
+      !report.productReceivedQuantity ||
+      !report.quantityAudited ||
+      !report.batchNumber) {
       return false;
     }
-    
+
     // Ensure at least some audit results are entered
     if (getTotalAuditCount() === 0) {
       return false;
     }
-    
+
     // Check that a quality decision is made
     if (!report.qualityDecision) {
       return false;
     }
-    
+
     return true;
   };
 
@@ -666,7 +667,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
             onSendEmail={handleSendEmail}
           />
         )}
-        
+
         {/* Audit history modal */}
         {showAuditHistory && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -682,7 +683,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
                   </svg>
                 </button>
               </div>
-              
+
               <div className="space-y-4 max-h-96 overflow-y-auto">
                 {auditHistory.map((entry, index) => (
                   <div key={index} className="border-l-4 pl-4 py-2 border-blue-500">
@@ -699,7 +700,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
                   </div>
                 ))}
               </div>
-              
+
               <div className="mt-4 text-right">
                 <button
                   onClick={() => setShowAuditHistory(false)}
@@ -711,13 +712,13 @@ const QualityInspectionForm = ({ isNew = false }) => {
             </div>
           </div>
         )}
-      
+
         {/* Status Banner */}
         <StatusBanner
           status={report.status}
           submittedBy={report.submittedBy}
         />
-        
+
         {/* Form header */}
         <div className="flex justify-between mb-4 px-4 pt-4">
           <div>
@@ -739,8 +740,8 @@ const QualityInspectionForm = ({ isNew = false }) => {
             </button>
           </div>
         </div>
-        
-        <FormHeader 
+
+        <FormHeader
           documentInfo={{
             documentNo: report.documentNo,
             revision: report.revision,
@@ -751,13 +752,13 @@ const QualityInspectionForm = ({ isNew = false }) => {
             approvedBy: report.approvedBy,
             issuedBy: report.issued,
             title: report.title
-          }} 
+          }}
           scope={report.scope}
           unit="AGI Speciality Glass Division"
           onDocumentInfoChange={handleDocumentInfoChange}
           readOnly={!permissions.canEditDocumentInfo}
         />
-        
+
         {/* Form Fields */}
         <div className="border-x border-b border-gray-800">
           <div className="grid grid-cols-3 text-sm">
@@ -904,12 +905,12 @@ const QualityInspectionForm = ({ isNew = false }) => {
             </div>
           </div>
         </div>
-        
+
         {/* Audit Report Section */}
         <div className="bg-gray-200 font-semibold p-2 border-x border-t border-gray-800">
           Audit Report
         </div>
-        
+
         {/* Audit Results Table */}
         <div className="relative">
           <table className="w-full text-sm border-collapse">
@@ -961,7 +962,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
             </tbody>
           </table>
         </div>
-        
+
         {/* Test Results Table */}
         <div className="mt-4">
           <table className="w-full text-sm border-collapse">
@@ -1006,7 +1007,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
             </tbody>
           </table>
         </div>
-        
+
         {/* Quality Decision Section */}
         <div className="mt-4 border border-gray-800">
           <div className="grid grid-cols-3 text-sm">
@@ -1032,7 +1033,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
             </div>
           </div>
         </div>
-        
+
         {/* Signature Section */}
         <div className="border-x border-b border-gray-800">
           <div className="flex justify-between items-center p-4">
@@ -1072,25 +1073,25 @@ const QualityInspectionForm = ({ isNew = false }) => {
             <div className="flex items-center">
               <div className="font-semibold mr-2">Operator:</div>
               <div className="w-16">
-                {report.operatorSignature ? (
+                {report.submittedBy ? (
                   <div className="h-12 flex items-center">
                     {/* Attempt to load the image */}
-                    <img
+                        <img
                       src={OperatorSign}
-                      alt="Operator Signature"
-                      onError={(e) => {
-                        console.error('Failed to load Operator signature image');
-                        e.target.style.display = 'none';
-                        e.target.nextSibling.style.display = 'flex';
-                      }}
-                    />
-                    {/* Fallback if image fails to load */}
-                    <div
-                      className="h-12 border border-dashed border-gray-400 hidden items-center justify-center w-full"
-                      title={`Signed by: ${report.operatorName}`}
-                    >
-                      <span className="text-xs text-gray-500">Signed digitally</span>
-                    </div>
+                          alt="Operator Signature"
+                          onError={(e) => {
+                            console.error('Failed to load Operator signature image');
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                        {/* Fallback if image fails to load */}
+                        <div
+                          className="h-12 border border-dashed border-gray-400 hidden items-center justify-center w-full"
+                          title={`Signed by: ${report.submittedBy}`}
+                        >
+                          <span className="text-xs text-gray-500">Signed digitally</span>
+                        </div>
                   </div>
                 ) : (
                   <div className="h-12 border border-dashed border-gray-400 flex items-center justify-center">
@@ -1107,7 +1108,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
             </div>
           )}
         </div>
-        
+
         {/* Review Information */}
         {(report.status === 'SUBMITTED' || report.status === 'APPROVED' || report.status === 'REJECTED') && (
           <div className="border-x border-b border-gray-800 p-4 bg-gray-50">
@@ -1145,7 +1146,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
             )}
           </div>
         )}
-        
+
         {/* Action Buttons */}
         <div className="p-4 bg-gray-100 flex justify-between">
           <button
@@ -1236,7 +1237,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
                 Download PDF
               </button>
             )}
-            
+
             {/* Email PDF button - visible when approved */}
             {permissions.canEmailPdf && (
               <button

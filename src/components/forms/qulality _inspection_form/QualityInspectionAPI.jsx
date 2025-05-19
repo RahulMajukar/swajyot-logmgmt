@@ -115,13 +115,23 @@ const deleteReport = async (id) => {
 const downloadReportPdf = async (id, userName) => {
   try {
     const response = await axios.get(`${API_ENDPOINT}/${id}/pdf/${userName}`, {
-      responseType: 'blob'
+      responseType: 'blob',
     });
-    return response.data;
+
+    // Create blob URL and download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Quality_Inspection_Report_${id}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+
   } catch (error) {
-    return handleError(error);
+    handleError(error); // Optional: log or alert error
   }
 };
+
 
 // Send email with PDF attachment
 const sendEmailWithPdf = async (id, emailRequest, userName = null) => {
