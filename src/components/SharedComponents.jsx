@@ -9,15 +9,15 @@ export const TopNavBar = ({ user, onLogout }) => {
     const getBgColorByRole = (role) => {
         switch (role) {
             case 'operator':
-                return 'bg-green-300';
+                return 'bg-pink-300';
             case 'qa':
-                return 'bg-purple-400';
+                return 'bg-pink-300';
             case 'avp':
-                return 'bg-red-300';
+                return 'bg-pink-300';
             case 'master':
-                return 'bg-blue-300';
+                return 'bg-pink-300';
             default:
-                return 'bg-gray-300';
+                return 'bg-pink-300';
         }
     };
 
@@ -100,20 +100,23 @@ export const TopNavBar = ({ user, onLogout }) => {
 // Dashboard Layout wrapper that includes shared elements
 export const DashboardLayout = ({ user, onLogout, title, subtitle, children }) => {
     return (
-        <div className="min-h-screen bg-gray-100">
+        <div className="min-h-screen bg-gray-100 flex flex-col">
             <TopNavBar user={user} onLogout={onLogout} />
 
-            <main className="max-w-full mx-auto py-6 px-4 sm:px-6 lg:px-8 pt-24">
-                <div className="mb-8">
-                    <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
+            <main className="flex-grow flex items-center justify-center px-4">
+                <div className="text-center">
+                    <h1 className="text-4xl font-semibold text-gray-900">{title}</h1>
                     <p className="mt-2 text-gray-600">{subtitle}</p>
-                </div>
 
-                {children}
+                    <div className="mt-6">
+                        {children}
+                    </div>
+                </div>
             </main>
         </div>
     );
 };
+
 
 // Reusable status badge component
 export const StatusBadge = ({ status }) => {

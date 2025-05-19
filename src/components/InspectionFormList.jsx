@@ -292,7 +292,7 @@ const InspectionFormList = () => {
     <div className="bg-gray-50 pb-12">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-full mx-auto sm:px-6 lg:px-8 py-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center">
               <Link

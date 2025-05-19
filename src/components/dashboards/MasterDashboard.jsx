@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { inspectionFormAPI } from '../services/api';
-import { DashboardLayout } from '../SharedComponents';
+// import { DashboardLayout } from '../SharedComponents';
 import FormDashboard from './FormDashboard';
 import AdminSidebar from './admin/AdminSidebar';
 import UserManagement from './admin/UserManagement';
@@ -134,8 +134,8 @@ const MasterDashboard = ({ user, onLogout }) => {
     switch (activeSection) {
       case 'dashboard':
         return <FormDashboard user={user} onLogout={onLogout} />;
-      case 'forms-analytics':
-        return <FormsAnalytics />;
+      // case 'forms-analytics':
+        // return <FormsAnalytics />;
       case 'user-management':
         return <UserManagement />;
       case 'role-management':
@@ -187,18 +187,48 @@ const MasterDashboard = ({ user, onLogout }) => {
             </button>
           </div>
         </div>
-        <div className="p-4">
-          {loading ? (
-            <div className="flex justify-center items-center h-64">
-              <p className="text-gray-500">Loading dashboard data...</p>
-            </div>
-          ) : (
-            renderContent()
-          )}
-        </div>
+        <DashboardLayout
+          user={user}
+          onLogout={onLogout}
+          title="Master Dashboard"
+          subtitle="Manage production inspections and reports"
+        >
+          <div className="p-4">
+            {loading ? (
+              <div className="flex justify-center items-center h-64">
+                <p className="text-gray-500">Loading dashboard data...</p>
+              </div>
+            ) : (
+              renderContent()
+            )}
+          </div>
+
+        </DashboardLayout>
+
       </div>
     </div>
   );
 };
 
 export default MasterDashboard;
+
+
+// Dashboard Layout wrapper that includes shared elements
+export const DashboardLayout = ({ user, onLogout, title, subtitle, children }) => {
+    return (
+        <div className="min-h-screen bg-gray-100 flex flex-col">
+            {/* <TopNavBar user={user} onLogout={onLogout} /> */}
+
+            <main className="flex-grow flex items-center justify-center px-4">
+                <div className="w-full text-center">
+                    <h1 className="text-4xl font-semibold text-gray-900">{title}</h1>
+                    <p className="mt-2 text-gray-600">{subtitle}</p>
+
+                    <div className="mt-6">
+                        {children}
+                    </div>
+                </div>
+            </main>
+        </div>
+    );
+};

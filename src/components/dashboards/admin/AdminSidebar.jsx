@@ -18,11 +18,11 @@ const AdminSidebar = ({ user, onLogout, activeSection, setActiveSection }) => {
       label: 'Dashboard',
       icon: <FaHome size={18} />,
     },
-    {
-      id: 'forms-analytics',
-      label: 'Forms Analytics',
-      icon: <FaChartBar size={18} />,
-    },
+    // {
+    //   id: 'forms-analytics',
+    //   label: 'Forms Analytics',
+    //   icon: <FaChartBar size={18} />,
+    // },
     {
       id: 'user-management',
       label: 'User Management',
