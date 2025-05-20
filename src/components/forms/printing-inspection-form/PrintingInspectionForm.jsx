@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { printingInspectionAPI } from './printingInspectionAPI';
 import QASign from '../../../assets/QASign.png';
 import OperatorSign from '../../../assets/OperatorSign.png';
-import EmailModal from '../../EmailModal';
+import EmailModal from './PrintingEmailModal';
 
 const PrintingInspectionForm = () => {
     const { id } = useParams();
@@ -85,7 +85,7 @@ const PrintingInspectionForm = () => {
                 try {
                     setLoading(true);
                     const data = await printingInspectionAPI.getFormById(id);
-                    
+
                     // Make sure we have default arrays if they're missing
                     const processedData = {
                         ...formData, // Default values from initial state
@@ -94,7 +94,7 @@ const PrintingInspectionForm = () => {
                         inks: Array.isArray(data.inks) ? data.inks : formData.inks,
                         characteristics: Array.isArray(data.characteristics) ? data.characteristics : formData.characteristics
                     };
-                    
+
                     setFormData(processedData);
                 } catch (error) {
                     console.error('Error fetching form:', error);
@@ -104,7 +104,7 @@ const PrintingInspectionForm = () => {
                     setLoading(false);
                 }
             };
-    
+
             fetchForm();
         }
     }, [id]);
@@ -347,15 +347,15 @@ const PrintingInspectionForm = () => {
         try {
             setSaving(true);
 
-            // Create an updated form data object with QA information
             const updatedFormData = {
                 ...formData,
                 qaExecutive: user.name,
                 qaSignature: `signed_by_${user.name.toLowerCase().replace(/\s/g, '_')}`,
+                submittedBy: user.name,
+                submittedAt: new Date().toISOString(),
                 status: 'SUBMITTED'
             };
 
-            // Update the form with QA information
             const result = await printingInspectionAPI.updateForm(id, updatedFormData);
 
             alert('Form submitted to AVP for approval!');
@@ -369,6 +369,7 @@ const PrintingInspectionForm = () => {
             setSaving(false);
         }
     };
+
 
     const qaRejectForm = async () => {
         if (!id) return;
@@ -386,7 +387,7 @@ const PrintingInspectionForm = () => {
                 ...formData,
                 qaExecutive: user.name,
                 qaSignature: `signed_by_${user.name.toLowerCase().replace(/\s/g, '_')}`,
-                status: 'REJECTED',
+                status: 'SUBMITTED',
                 comments: comments
             };
 
@@ -517,7 +518,7 @@ const PrintingInspectionForm = () => {
     }
 
     return (
-        <div className="flex justify-center bg-gray-100 p-4">
+        <div className="flex justify-center bg-gray-100 p-4 mt-16">
             <form onSubmit={handleSubmit} className="w-full max-w-4xl bg-white shadow-md pt-2">
 
                 {/* Email Modal Component */}
@@ -937,65 +938,76 @@ const PrintingInspectionForm = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {formData && formData.characteristics && formData.characteristics.map((char, index) => (
-                                <tr key={char.id}>
-                                    <td className="border border-gray-800 p-2 text-center">{char.id}</td>
-                                    <td className="border border-gray-800 p-2">
-                                        {char.name}
-                                    </td>
-                                    <td className="border border-gray-800">
-                                        {char.id === 2 ? (
-                                            <table className="w-full border-collapse">
-                                                <tbody>
-                                                    <tr>
-                                                        <td className="border-b border-r border-gray-800 p-2 w-30 text-center font-semibold h-12">Vertical ± 1.0mm</td>
-                                                        <td className="border-b border-gray-800 p-2 text-center h-12">
-                                                            <input
-                                                                type="text"
-                                                                value={char.vertical || ''}
-                                                                onChange={(e) => handleCharChange(index, 'vertical', e.target.value)}
-                                                                disabled={!permissions.canEditCharacteristics}
-                                                                className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                                                placeholder="Enter measurement"
-                                                            />
-                                                        </td>
-                                                    </tr>
-                                                    <tr>
-                                                        <td className="border-r border-gray-800 text-center font-semibold h-12">Horizontal ± 1.0mm</td>
-                                                        <td className="p-2 text-center h-12">
-                                                            <input
-                                                                type="text"
-                                                                value={char.horizontal || ''}
-                                                                onChange={(e) => handleCharChange(index, 'horizontal', e.target.value)}
-                                                                disabled={!permissions.canEditCharacteristics}
-                                                                className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                                                placeholder="Enter measurement"
-                                                            />
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        ) : (
+                            {formData.characteristics && formData.characteristics.length > 0 ? (
+                                formData.characteristics.map((char, index) => (
+                                    <tr key={char.id || index}>
+                                        <td className="border border-gray-800 p-2 text-center">{char.id || index + 1}</td>
+                                        <td className="border border-gray-800 p-2">
+                                            {char.name || ''}
+                                        </td>
+                                        <td className="border border-gray-800">
+                                            {char.name === 'Printing Position' || char.id === 2 ? (
+                                                <table className="w-full border-collapse">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td className="border-b border-r border-gray-800 p-2 w-30 text-center font-semibold h-12">Vertical ± 1.0mm</td>
+                                                            <td className="border-b border-gray-800 p-2 text-center h-12">
+                                                                <input
+                                                                    type="text"
+                                                                    value={char.vertical || ''}
+                                                                    onChange={(e) => handleCharChange(index, 'vertical', e.target.value)}
+                                                                    disabled={!permissions.canEditCharacteristics}
+                                                                    className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                                                    placeholder="Enter measurement"
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td className="border-r border-gray-800 text-center font-semibold h-12">Horizontal ± 1.0mm</td>
+                                                            <td className="p-2 text-center h-12">
+                                                                <input
+                                                                    type="text"
+                                                                    value={char.horizontal || ''}
+                                                                    onChange={(e) => handleCharChange(index, 'horizontal', e.target.value)}
+                                                                    disabled={!permissions.canEditCharacteristics}
+                                                                    className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                                                    placeholder="Enter measurement"
+                                                                />
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            ) : (
+                                                <input
+                                                    type="text"
+                                                    value={char.observation || ''}
+                                                    onChange={(e) => handleCharChange(index, 'observation', e.target.value)}
+                                                    disabled={!permissions.canEditCharacteristics}
+                                                    className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                                    placeholder="Enter observation"
+                                                />
+                                            )}
+                                        </td>
+                                        <td className="border border-gray-800 p-2">
                                             <input
                                                 type="text"
-                                                value={char.observation || ''}
-                                                onChange={(e) => handleCharChange(index, 'observation', e.target.value)}
+                                                value={char.comments || ''}
+                                                onChange={(e) => handleCharChange(index, 'comments', e.target.value)}
                                                 disabled={!permissions.canEditCharacteristics}
                                                 className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                                                placeholder="Enter comments"
                                             />
-                                        )}
-                                    </td>
-                                    <td className="border border-gray-800 p-2">
-                                        <input
-                                            type="text"
-                                            value={char.comments || ''}
-                                            onChange={(e) => handleCharChange(index, 'comments', e.target.value)}
-                                            disabled={!permissions.canEditCharacteristics}
-                                            className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
-                                        />
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                // Fallback for when characteristics is empty or null
+                                <tr>
+                                    <td colSpan="4" className="border border-gray-800 p-4 text-center text-gray-500">
+                                        No characteristics available
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>

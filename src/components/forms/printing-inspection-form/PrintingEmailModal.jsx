@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { coatingInspectionAPI } from './coatingInspectionAPI';
+import { printingInspectionAPI } from './printingInspectionAPI';
 
-const CoatingEmailModal = ({ isOpen, onClose, formId, reportNo, onSuccess }) => {
+const PrintingEmailModal = ({ isOpen, onClose, formId, reportNo, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [emailData, setEmailData] = useState({
     to: '',
-    subject: `Coating Inspection Report: ${reportNo || 'Document'}`,
-    body: `Please find attached the Coating Inspection Report ${reportNo || ''}.
+    subject: `Printing Inspection Report: ${reportNo || 'Document'}`,
+    body: `Please find attached the Printing Inspection Report ${reportNo || ''}.
 
-Best regards,\nCoating QA Team`
+Best regards,\nPrinting QA Team`
   });
 
   const handleChange = (e) => {
@@ -36,7 +36,8 @@ Best regards,\nCoating QA Team`
       const user = JSON.parse(localStorage.getItem('user'));
       const userName = user?.name || 'Anonymous';
 
-      const response = await coatingInspectionAPI.sendEmailWithPdf(formId, emailData, userName);
+      // Call the API to send email with attached PDF
+      const response = await printingInspectionAPI.sendEmailWithPdf(formId, emailData, userName);
 
       alert('Email sent successfully!');
       onClose();
@@ -56,7 +57,7 @@ Best regards,\nCoating QA Team`
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold text-gray-800">Send Coating Inspection Report PDF</h2>
+          <h2 className="text-xl font-semibold text-gray-800">Send Printing Inspection Report PDF</h2>
           <button onClick={onClose} disabled={loading} className="text-gray-500 hover:text-gray-700 focus:outline-none disabled:opacity-50">
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -144,4 +145,4 @@ Best regards,\nCoating QA Team`
   );
 };
 
-export default CoatingEmailModal;
+export default PrintingEmailModal;

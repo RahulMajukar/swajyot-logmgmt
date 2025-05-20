@@ -641,7 +641,7 @@ const QualityInspectionForm = ({ isNew = false }) => {
   }
 
   return (
-    <div className="flex justify-center bg-gray-100 p-4">
+    <div className="flex justify-center bg-gray-100 p-4 mt-16">
       <form className="w-full max-w-4xl bg-white shadow-md pt-2">
         {/* Email Modal */}
         {isEmailModalOpen && (

@@ -145,18 +145,24 @@ const deleteReport = async (id) => {
 };
 
 // Download PDF
-const downloadPdf = async (id, userName) => {
+const downloadPdf = async (id, userName = '') => {
     try {
-        const response = await axios.get(`${API_ENDPOINT}/pdf/${id}`, {
-            params: { user: userName },
+        let url = `${API_ENDPOINT}/pdf/${id}`;
+        
+        // If userName is provided, use the endpoint with userName parameter
+        if (userName) {
+            url = `${API_ENDPOINT}/pdf/${id}/${encodeURIComponent(userName)}`;
+        }
+        
+        const response = await axios.get(url, {
             responseType: 'blob'
         });
         
         // Create a blob link to download
-        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const url2 = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `inspection-report-${id}.pdf`);
+        link.href = url2;
+        link.setAttribute('download', `printing-inspection-report-${id}.pdf`);
         
         // Append to html link element page
         document.body.appendChild(link);
@@ -174,9 +180,22 @@ const downloadPdf = async (id, userName) => {
 };
 
 // Send email with PDF
-const sendEmailWithPdf = async (id, emailData) => {
+const sendEmailWithPdf = async (id, emailData, userName = '') => {
     try {
-        const response = await axios.post(`${API_ENDPOINT}/email/${id}`, emailData);
+        let url = `${API_ENDPOINT}/${id}/email-pdf`;
+        
+        // If userName is provided, use the endpoint with userName parameter
+        if (userName && userName !== 'Anonymous') {
+            url = `${API_ENDPOINT}/${id}/email-pdf/${encodeURIComponent(userName)}`;
+        }
+        
+        const payload = {
+            to: emailData.to,
+            subject: emailData.subject,
+            body: emailData.body
+        };
+        
+        const response = await axios.post(url, payload);
         return response.data;
     } catch (error) {
         return handleError(error);
@@ -210,9 +229,6 @@ const getReportSummary = async () => {
     }
 };
 
-// Remove the erroneous fetchForms function that was causing issues
-// This function was incorrectly copied from a component file
-
 // Export all API functions
 export const printingInspectionAPI = {
     getAllReports,
@@ -227,7 +243,7 @@ export const printingInspectionAPI = {
     rejectReport,
     deleteReport,
     downloadPdf,
-    sendEmailWithPdf,    // Added missing function
+    sendEmailWithPdf,    // Corrected method
     getReportsByStatus,
     getFormsByStatus,    // Added for compatibility
     getReportSummary,

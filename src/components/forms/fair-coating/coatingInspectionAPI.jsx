@@ -141,20 +141,27 @@ const downloadPdf = async (id, userName) => {
 };
 
 // Send email with PDF attachment
-const sendEmailWithPdf = async (id, emailRequest, userName = null) => {
+const sendEmailWithPdf = async (id, emailRequest, userName = 'Anonymous') => {
   try {
-    let endpoint = `${API_ENDPOINT}/${id}/email-pdf`;
+    // Always use the endpoint with userName in the path since we always have a userName
+    const endpoint = `${API_ENDPOINT}/${id}/email-pdf/${encodeURIComponent(userName)}`;
     
-    if (userName) {
-      endpoint = `${API_ENDPOINT}/${id}/email-pdf/${userName}`;
-    }
+    // console.log("Sending email to endpoint:", endpoint);
+    // console.log("Email request:", emailRequest);
+    // console.log("User name:", userName);
+
+    const response = await axios.post(endpoint, emailRequest, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
     
-    const response = await axios.post(endpoint, emailRequest);
     return response.data;
   } catch (error) {
     return handleError(error);
   }
 };
+
 
 // Get reports by status
 const getReportsByStatus = async (status) => {

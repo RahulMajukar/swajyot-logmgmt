@@ -17,10 +17,10 @@ import QualityInspectionForm from './components/forms/qulality _inspection_form/
 // Footer component
 const Footer = () => {
   return (
-    <footer style={{ backgroundColor: '#0057a7', color: 'white' }} className="py-3 text-center w-full mt-auto">
+    <footer style={{ backgroundColor: '#f9a8d4', color: 'white' }} className="py-3 text-center w-full mt-auto">
       <div className="container mx-auto">
         <p className="text-sm">
-          Built By Swajyot Technologies. 2002 – 2025.
+          Built By Swajyot Technologies. 2002 - 2025.
         </p>
       </div>
     </footer>
@@ -102,7 +102,7 @@ const InspectionFormLayout = ({ user, onLogout, children }) => {
         {children}
       </div>
       <Footer />
-      {user && <Chatbot user={user} />}
+       {user && <Chatbot user={user} />} 
     </div>
   );
 };

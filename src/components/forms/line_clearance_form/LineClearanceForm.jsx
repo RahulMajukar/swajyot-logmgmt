@@ -194,6 +194,9 @@ const LineClearanceForm = () => {
                 submittedAt: (newStatus === 'SUBMITTED' && !formData.submittedAt) ? new Date().toISOString() : formData.submittedAt,
                 reviewedBy: (newStatus === 'APPROVED' || newStatus === 'REJECTED') ? user.name : formData.reviewedBy,
                 reviewedAt: (newStatus === 'APPROVED' || newStatus === 'REJECTED') ? new Date().toISOString() : formData.reviewedAt,
+                productionSignature: !id && !formData.productionSignature ? `signed_by_${user.name}` : formData.productionSignature,
+                qualityName: (newStatus === 'APPROVED' && !formData.qualityName) ? user.name : formData.qualityName,
+                qualitySignature: (newStatus === 'APPROVED' && !formData.qualitySignature) ? `signed_by_${user.name}` : formData.qualitySignature
             };
 
             // Map to backend model and sanitize
@@ -297,7 +300,7 @@ const LineClearanceForm = () => {
                 canReject: (isAVP && isSubmitted),
                 canSaveDraft: (isOperator && isDraft) || isMaster,
                 canDownloadPdf: isApproved || isMaster,
-                canEmailPdf: isApproved || isMaster
+                canEmailPdf: isApproved || (isMaster) || (isAVP && isSubmitted)
             });
         }
     }, [user, formData]);
@@ -359,7 +362,7 @@ const LineClearanceForm = () => {
     );
 
     return (
-        <div className="flex justify-center bg-gray-100 p-4">
+        <div className="flex justify-center bg-gray-100 p-4 mt-16">
             <form className="w-full max-w-4xl bg-white shadow-md p-4">
 
                 {/* Banner */}
@@ -579,7 +582,7 @@ const LineClearanceForm = () => {
                 </div>
                 {/* Production and Quality Responsible Section */}
                 <div className="border-x border-b border-gray-800 text-sm">
-                
+
                     {/* Signature Section */}
                     <div className="border-x border-b border-gray-800 text-sm mt-4">
                         <table className="w-full table-fixed border-collapse">
@@ -655,61 +658,61 @@ const LineClearanceForm = () => {
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+
+                {/* Review Information (Only when Submitted / Approved / Rejected) */}
+                {(formData.status === 'SUBMITTED' || formData.status === 'APPROVED' || formData.status === 'REJECTED') && (
+                    <div className="border-x border-b border-gray-800 p-4 bg-gray-50">
+                        <h3 className="font-semibold text-gray-700 mb-2">Review Information</h3>
+
+                        {formData.submittedBy && (
+                            <div className="text-sm mb-1">
+                                <span className="font-medium">Submitted by:</span> {formData.submittedBy}
+                                {formData.submittedAt && (
+                                    <span className="ml-1 text-gray-500">
+                                        on {new Date(formData.submittedAt).toLocaleString()}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
+                        {formData.reviewedBy && (
+                            <div className="text-sm mb-1">
+                                <span className="font-medium">Reviewed by:</span> {formData.reviewedBy}
+                                {formData.reviewedAt && (
+                                    <span className="ml-1 text-gray-500">
+                                        on {new Date(formData.reviewedAt).toLocaleString()}
+                                    </span>
+                                )}
+                            </div>
+                        )}
+
+                        {formData.comments && (
+                            <div className="mt-2">
+                                <span className="font-medium text-sm">Comments:</span>
+                                <div className="p-2 bg-white border border-gray-300 rounded mt-1 text-sm">
+                                    {formData.comments}
+                                </div>
+                            </div>
+                        )}
                     </div>
+                )}
 
-
-                    {/* Review Information (Only when Submitted / Approved / Rejected) */}
-                    {(formData.status === 'SUBMITTED' || formData.status === 'APPROVED' || formData.status === 'REJECTED') && (
-                        <div className="border-x border-b border-gray-800 p-4 bg-gray-50">
-                            <h3 className="font-semibold text-gray-700 mb-2">Review Information</h3>
-
-                            {formData.submittedBy && (
-                                <div className="text-sm mb-1">
-                                    <span className="font-medium">Submitted by:</span> {formData.submittedBy}
-                                    {formData.submittedAt && (
-                                        <span className="ml-1 text-gray-500">
-                                            on {new Date(formData.submittedAt).toLocaleString()}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-
-                            {formData.reviewedBy && (
-                                <div className="text-sm mb-1">
-                                    <span className="font-medium">Reviewed by:</span> {formData.reviewedBy}
-                                    {formData.reviewedAt && (
-                                        <span className="ml-1 text-gray-500">
-                                            on {new Date(formData.reviewedAt).toLocaleString()}
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-
-                            {formData.comments && (
-                                <div className="mt-2">
-                                    <span className="font-medium text-sm">Comments:</span>
-                                    <div className="p-2 bg-white border border-gray-300 rounded mt-1 text-sm">
-                                        {formData.comments}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {/* Form Action Buttons */}
-                    <FormActionButtons
-                        permissions={permissions}
-                        onSaveDraft={() => saveForm('DRAFT')}
-                        onSubmit={() => saveForm('SUBMITTED')}
-                        onQAReject={() => saveForm('REJECTED')}
-                        onQASubmit={() => saveForm('SUBMITTED')}
-                        onReject={() => saveForm('REJECTED')}
-                        onApprove={() => saveForm('APPROVED')}
-                        onDownloadPdf={downloadPdf}
-                        onBack={() => navigate('/forms/clearance')}
-                        saving={saving}
-                        customButtons={customButtons}
-                    />
+                {/* Form Action Buttons */}
+                <FormActionButtons
+                    permissions={permissions}
+                    onSaveDraft={() => saveForm('DRAFT')}
+                    onSubmit={() => saveForm('SUBMITTED')}
+                    onQAReject={() => saveForm('REJECTED')}
+                    onQASubmit={() => saveForm('SUBMITTED')}
+                    onReject={() => saveForm('REJECTED')}
+                    onApprove={() => saveForm('APPROVED')}
+                    onDownloadPdf={downloadPdf}
+                    onBack={() => navigate('/forms/clearance')}
+                    saving={saving}
+                    customButtons={customButtons}
+                />
             </form>
 
             {/* Email Modal */}

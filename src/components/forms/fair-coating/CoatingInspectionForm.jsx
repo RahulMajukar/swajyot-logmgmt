@@ -5,7 +5,7 @@ import { FormHeader, StatusBanner } from '../CommonCode';
 import { coatingInspectionAPI } from './coatingInspectionAPI';
 import QASign from '../../../assets/QASign.png';
 import OperatorSign from '../../../assets/OperatorSign.png';
-import EmailModal from '../../EmailModal';
+import EmailModal from './CoatingEmailModal';
 
 const CoatingInspectionForm = ({ isNew }) => {
   const { id } = useParams();
