@@ -333,14 +333,14 @@ const InspectionFormList = () => {
         <div className="bg-white rounded-lg shadow-sm mb-6 overflow-hidden">
           <div className="p-4 border-b border-gray-200 flex justify-between items-center">
             <h2 className="text-lg font-medium text-gray-900">Filters</h2>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="text-gray-500 hover:text-gray-700 flex items-center text-sm font-medium"
-              >
-                <Filter className="h-4 w-4 mr-1" />
-                {showFilters ? 'Hide Filters' : 'Show Filters'}
-              </button>
-            </div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="text-gray-500 hover:text-gray-700 flex items-center text-sm font-medium"
+            >
+              <Filter className="h-4 w-4 mr-1" />
+              {showFilters ? 'Hide Filters' : 'Show Filters'}
+            </button>
+          </div>
 
           {showFilters && (
             <div className="p-4 bg-gray-50 border-b border-gray-200">

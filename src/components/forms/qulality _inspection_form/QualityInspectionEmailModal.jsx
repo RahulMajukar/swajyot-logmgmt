@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { QualityInspectionAPI } from './QualityInspectionAPI';
 
-const QualityInspectionEmailModal = ({ isOpen, onClose, reportId, reportNo, onSuccess }) => {
+const QualityInspectionEmailModal = ({ isOpen, onClose, formId, reportNo, onSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [emailData, setEmailData] = useState({
     to: '',
@@ -23,10 +23,8 @@ const QualityInspectionEmailModal = ({ isOpen, onClose, reportId, reportNo, onSu
     return emailPattern.test(email);
   };
 
-  const handleSubmit = async (e) => {
-    if (e) e.preventDefault();
-
-    if (!reportId) {
+  const handleSubmit = async () => {
+    if (!formId) {
       alert('Report ID is missing');
       return;
     }
@@ -48,7 +46,8 @@ const QualityInspectionEmailModal = ({ isOpen, onClose, reportId, reportNo, onSu
 
     try {
       setLoading(true);
-      console.log("Sending email for quality inspection report:", reportId);
+      
+      console.log("Sending email for quality inspection report:", formId);
       console.log("Email data:", emailData);
       
       // Get user info from local storage
@@ -56,9 +55,10 @@ const QualityInspectionEmailModal = ({ isOpen, onClose, reportId, reportNo, onSu
       const userName = user?.name || 'Anonymous';
 
       // Send email with the PDF
-      const response = await QualityInspectionAPI.sendEmailWithPdf(reportId, emailData, userName);
+      const response = await QualityInspectionAPI.sendEmailWithPdf(formId, emailData, userName);
 
       console.log("Email API response:", response);
+      
       alert('Email sent successfully!');
       onClose();
 
@@ -67,7 +67,10 @@ const QualityInspectionEmailModal = ({ isOpen, onClose, reportId, reportNo, onSu
       }
     } catch (error) {
       console.error('Error sending email:', error);
-      alert(`Failed to send email: ${error.response?.data?.error || error.message || 'Please try again'}`);
+      
+      // Show error alert with detailed message
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to send email. Please try again.';
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -77,13 +80,14 @@ const QualityInspectionEmailModal = ({ isOpen, onClose, reportId, reportNo, onSu
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+      <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md relative">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800">Send Quality Inspection Report PDF</h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-500 hover:text-gray-700 focus:outline-none"
+            disabled={loading}
+            className="text-gray-500 hover:text-gray-700 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Close"
           >
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -92,7 +96,7 @@ const QualityInspectionEmailModal = ({ isOpen, onClose, reportId, reportNo, onSu
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <div className={loading ? 'opacity-50 pointer-events-none' : ''}>
           <div className="mb-4">
             <label htmlFor="to" className="block text-sm font-medium text-gray-700 mb-1">
               Recipient Email*
@@ -104,7 +108,8 @@ const QualityInspectionEmailModal = ({ isOpen, onClose, reportId, reportNo, onSu
               value={emailData.to}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              disabled={loading}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
               placeholder="recipient@example.com"
             />
             <p className="text-xs text-gray-500 mt-1">
@@ -122,7 +127,8 @@ const QualityInspectionEmailModal = ({ isOpen, onClose, reportId, reportNo, onSu
               name="subject"
               value={emailData.subject}
               onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              disabled={loading}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -136,7 +142,8 @@ const QualityInspectionEmailModal = ({ isOpen, onClose, reportId, reportNo, onSu
               value={emailData.body}
               onChange={handleChange}
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              disabled={loading}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
             />
           </div>
 
@@ -144,14 +151,16 @@ const QualityInspectionEmailModal = ({ isOpen, onClose, reportId, reportNo, onSu
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              disabled={loading}
+              className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Cancel
             </button>
             <button
-              type="submit"
+              type="button"
+              onClick={handleSubmit}
               disabled={loading}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-blue-300 flex items-center"
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-blue-300 disabled:cursor-not-allowed flex items-center transition-colors min-w-24 justify-center"
             >
               {loading ? (
                 <>
@@ -172,7 +181,7 @@ const QualityInspectionEmailModal = ({ isOpen, onClose, reportId, reportNo, onSu
               )}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

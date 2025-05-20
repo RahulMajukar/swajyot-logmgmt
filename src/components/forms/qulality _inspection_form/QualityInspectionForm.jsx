@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { FormHeader, StatusBanner } from '../CommonCode';
 import { QualityInspectionAPI } from './QualityInspectionAPI';
-import EmailModal from '../../EmailModal';
+import EmailModal from './QualityInspectionEmailModal';
 import QASign from '../../../assets/QASign.png';
 import OperatorSign from '../../../assets/OperatorSign.png';
 
@@ -114,8 +114,6 @@ const QualityInspectionForm = ({ isNew = false }) => {
     if (id && !isNew) {
       fetchReport();
     } else {
-      // Set default values for a new report
-      generateDocumentNumber();
       setPermissionsByRole();
     }
   }, [id, isNew]);
@@ -192,18 +190,6 @@ const QualityInspectionForm = ({ isNew = false }) => {
     }
 
     setAuditHistory(history);
-  };
-
-  const generateDocumentNumber = () => {
-    // Generate a document number format: AGI-IQC-[YY]-[XXXX]
-    const today = new Date();
-    const year = today.getFullYear().toString().slice(-2);
-    const random = Math.floor(1000 + Math.random() * 9000); // 4-digit number
-
-    setReport(prev => ({
-      ...prev,
-      documentNo: `AGI-IQC-${year}-${random}`
-    }));
   };
 
   const setPermissionsByRole = () => {
@@ -916,9 +902,9 @@ const QualityInspectionForm = ({ isNew = false }) => {
           <table className="w-full text-sm border-collapse">
             <thead>
               <tr>
-                <th className="border border-gray-800 p-2 bg-gray-200">CATEGORY</th>
-                <th className="border border-gray-800 p-2 text-center bg-gray-200 w-20">Nos</th>
-                <th className="border border-gray-800 p-2 bg-gray-200">DEFECT(S) NAME</th>
+                <th className="border border-gray-800 p-2 bg-gray-200 w-1/3">CATEGORY</th>
+                <th className="border border-gray-800 p-2 text-center bg-gray-200 w-1/3">Nos</th>
+                <th className="border border-gray-800 p-2 bg-gray-200 w-1/3">DEFECT(S) NAME</th>
               </tr>
             </thead>
             <tbody>
@@ -1076,22 +1062,22 @@ const QualityInspectionForm = ({ isNew = false }) => {
                 {report.submittedBy ? (
                   <div className="h-12 flex items-center">
                     {/* Attempt to load the image */}
-                        <img
+                    <img
                       src={OperatorSign}
-                          alt="Operator Signature"
-                          onError={(e) => {
-                            console.error('Failed to load Operator signature image');
-                            e.target.style.display = 'none';
-                            e.target.nextSibling.style.display = 'flex';
-                          }}
-                        />
-                        {/* Fallback if image fails to load */}
-                        <div
-                          className="h-12 border border-dashed border-gray-400 hidden items-center justify-center w-full"
-                          title={`Signed by: ${report.submittedBy}`}
-                        >
-                          <span className="text-xs text-gray-500">Signed digitally</span>
-                        </div>
+                      alt="Operator Signature"
+                      onError={(e) => {
+                        console.error('Failed to load Operator signature image');
+                        e.target.style.display = 'none';
+                        e.target.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                    {/* Fallback if image fails to load */}
+                    <div
+                      className="h-12 border border-dashed border-gray-400 hidden items-center justify-center w-full"
+                      title={`Signed by: ${report.submittedBy}`}
+                    >
+                      <span className="text-xs text-gray-500">Signed digitally</span>
+                    </div>
                   </div>
                 ) : (
                   <div className="h-12 border border-dashed border-gray-400 flex items-center justify-center">

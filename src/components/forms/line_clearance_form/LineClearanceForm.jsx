@@ -579,135 +579,137 @@ const LineClearanceForm = () => {
                 </div>
                 {/* Production and Quality Responsible Section */}
                 <div className="border-x border-b border-gray-800 text-sm">
-                    <div className="grid grid-cols-2">
-                        {/* Production Responsible */}
-                        <div className="border-r border-gray-800 p-2">
-                            <span className="font-semibold">PRODUCTION:</span>
-                            {permissions.canEditDetails ? (
-                                <input
-                                    type="text"
-                                    name="productionName"
-                                    value={formData.productionName}
-                                    onChange={handleChange}
-                                    className="w-full mt-2 px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
-                                />
-                            ) : (
-                                <div className="mt-2">{formData.productionName}</div>
-                            )}
-                        </div>
+                
+                    {/* Signature Section */}
+                    <div className="border-x border-b border-gray-800 text-sm mt-4">
+                        <table className="w-full table-fixed border-collapse">
+                            <thead>
+                                <tr className="bg-gray-200">
+                                    <th className="border border-gray-800 w-1/5 text-center py-2">RESPONSIBLE</th>
+                                    <th className="border border-gray-800 w-3/5 text-center py-2">NAME</th>
+                                    <th className="border border-gray-800 w-1/5 text-center py-2">SIGN</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {/* Production Row */}
+                                <tr>
+                                    <td className="border border-gray-800 text-center font-semibold py-3">PRODUCTION</td>
+                                    <td className="border border-gray-800 text-center px-4 py-3">
+                                        {permissions.canEditDetails ? (
+                                            <input
+                                                type="text"
+                                                name="productionName"
+                                                value={formData.productionName}
+                                                onChange={handleChange}
+                                                placeholder="Enter name"
+                                                className="w-full border-none outline-none text-center text-sm"
+                                            />
+                                        ) : (
+                                            <span>{formData.productionName}</span>
+                                        )}
+                                    </td>
+                                    <td className="border border-gray-800 text-center py-3">
+                                        {formData.productionSignature?.startsWith('signed_by_') ? (
+                                            <img
+                                                src={OperatorSign}
+                                                alt="Production Signature"
+                                                className="h-10 mx-auto"
+                                                onError={(e) => (e.target.style.display = 'none')}
+                                            />
+                                        ) : (
+                                            <span className="text-xs text-gray-500">Signature</span>
+                                        )}
+                                    </td>
+                                </tr>
 
-                        {/* Quality Responsible */}
-                        <div className="p-2">
-                            <span className="font-semibold">QUALITY:</span>
-                            {permissions.canEditDetails ? (
-                                <input
-                                    type="text"
-                                    name="qualityName"
-                                    value={formData.qualityName}
-                                    onChange={handleChange}
-                                    className="w-full mt-2 px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200"
-                                />
-                            ) : (
-                                <div className="mt-2">{formData.qualityName}</div>
-                            )}
-                        </div>
+                                {/* Quality Row */}
+                                <tr>
+                                    <td className="border border-gray-800 text-center font-semibold py-3">QUALITY</td>
+                                    <td className="border border-gray-800 text-center px-4 py-3">
+                                        {permissions.canEditDetails ? (
+                                            <input
+                                                type="text"
+                                                name="qualityName"
+                                                value={formData.qualityName}
+                                                onChange={handleChange}
+                                                placeholder="Enter name"
+                                                className="w-full border-none outline-none text-center text-sm"
+                                            />
+                                        ) : (
+                                            <span>{formData.qualityName}</span>
+                                        )}
+                                    </td>
+                                    <td className="border border-gray-800 text-center py-3">
+                                        {formData.qualitySignature?.startsWith('signed_by_') ? (
+                                            <img
+                                                src={QASign}
+                                                alt="Quality Signature"
+                                                className="h-10 mx-auto"
+                                                onError={(e) => (e.target.style.display = 'none')}
+                                            />
+                                        ) : (
+                                            <span className="text-xs text-gray-500">Signature</span>
+                                        )}
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                     </div>
 
-                    {/* Signatures */}
-                    <div className="grid grid-cols-2 border-t border-gray-800">
-                        {/* Production Signature */}
-                        <div className="border-r border-gray-800 flex flex-col justify-start items-start h-24 pl-4 pt-2">
-                            {formData.productionSignature?.startsWith('signed_by_') ? (
-                                <>
-                                    <img
-                                        src={OperatorSign}
-                                        alt="Production Signature"
-                                        className="h-12"
-                                        onError={(e) => (e.target.style.display = 'none')}
-                                    />
-                                    {/* {formData.productionName && (
-                                        <span className="text-xs text-gray-600 mt-1">Signed by {formData.productionName}</span>
-                                    )} */}
-                                </>
-                            ) : (
-                                <div className="text-gray-400 text-xs">Signature</div>
-                            )}
-                        </div>
 
-                        {/* Quality Signature */}
-                        <div className="flex flex-col justify-start items-start h-24 pl-4 pt-2">
-                            {formData.qualitySignature?.startsWith('signed_by_') ? (
-                                <>
-                                    <img
-                                        src={QASign}
-                                        alt="Quality Signature"
-                                        className="h-12"
-                                        onError={(e) => (e.target.style.display = 'none')}
-                                    />
-                                    {/* {formData.qualityName && (
-                                        <span className="text-xs text-gray-600 mt-1">Signed by {formData.qualityName}</span>
-                                    )} */}
-                                </>
-                            ) : (
-                                <div className="text-gray-400 text-xs">Signature</div>
-                            )}
-                        </div>
-                    </div>
+                    {/* Review Information (Only when Submitted / Approved / Rejected) */}
+                    {(formData.status === 'SUBMITTED' || formData.status === 'APPROVED' || formData.status === 'REJECTED') && (
+                        <div className="border-x border-b border-gray-800 p-4 bg-gray-50">
+                            <h3 className="font-semibold text-gray-700 mb-2">Review Information</h3>
 
-                </div>
-
-                {/* Review Information (Only when Submitted / Approved / Rejected) */}
-                {(formData.status === 'SUBMITTED' || formData.status === 'APPROVED' || formData.status === 'REJECTED') && (
-                    <div className="border-x border-b border-gray-800 p-4 bg-gray-50">
-                        <h3 className="font-semibold text-gray-700 mb-2">Review Information</h3>
-
-                        {formData.submittedBy && (
-                            <div className="text-sm mb-1">
-                                <span className="font-medium">Submitted by:</span> {formData.submittedBy}
-                                {formData.submittedAt && (
-                                    <span className="ml-1 text-gray-500">
-                                        on {new Date(formData.submittedAt).toLocaleString()}
-                                    </span>
-                                )}
-                            </div>
-                        )}
-
-                        {formData.reviewedBy && (
-                            <div className="text-sm mb-1">
-                                <span className="font-medium">Reviewed by:</span> {formData.reviewedBy}
-                                {formData.reviewedAt && (
-                                    <span className="ml-1 text-gray-500">
-                                        on {new Date(formData.reviewedAt).toLocaleString()}
-                                    </span>
-                                )}
-                            </div>
-                        )}
-
-                        {formData.comments && (
-                            <div className="mt-2">
-                                <span className="font-medium text-sm">Comments:</span>
-                                <div className="p-2 bg-white border border-gray-300 rounded mt-1 text-sm">
-                                    {formData.comments}
+                            {formData.submittedBy && (
+                                <div className="text-sm mb-1">
+                                    <span className="font-medium">Submitted by:</span> {formData.submittedBy}
+                                    {formData.submittedAt && (
+                                        <span className="ml-1 text-gray-500">
+                                            on {new Date(formData.submittedAt).toLocaleString()}
+                                        </span>
+                                    )}
                                 </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                            )}
 
-                {/* Form Action Buttons */}
-                <FormActionButtons
-                    permissions={permissions}
-                    onSaveDraft={() => saveForm('DRAFT')}
-                    onSubmit={() => saveForm('SUBMITTED')}
-                    onQAReject={() => saveForm('REJECTED')}
-                    onQASubmit={() => saveForm('SUBMITTED')}
-                    onReject={() => saveForm('REJECTED')}
-                    onApprove={() => saveForm('APPROVED')}
-                    onDownloadPdf={downloadPdf}
-                    onBack={() => navigate('/forms/clearance')}
-                    saving={saving}
-                    customButtons={customButtons}
-                />
+                            {formData.reviewedBy && (
+                                <div className="text-sm mb-1">
+                                    <span className="font-medium">Reviewed by:</span> {formData.reviewedBy}
+                                    {formData.reviewedAt && (
+                                        <span className="ml-1 text-gray-500">
+                                            on {new Date(formData.reviewedAt).toLocaleString()}
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+
+                            {formData.comments && (
+                                <div className="mt-2">
+                                    <span className="font-medium text-sm">Comments:</span>
+                                    <div className="p-2 bg-white border border-gray-300 rounded mt-1 text-sm">
+                                        {formData.comments}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Form Action Buttons */}
+                    <FormActionButtons
+                        permissions={permissions}
+                        onSaveDraft={() => saveForm('DRAFT')}
+                        onSubmit={() => saveForm('SUBMITTED')}
+                        onQAReject={() => saveForm('REJECTED')}
+                        onQASubmit={() => saveForm('SUBMITTED')}
+                        onReject={() => saveForm('REJECTED')}
+                        onApprove={() => saveForm('APPROVED')}
+                        onDownloadPdf={downloadPdf}
+                        onBack={() => navigate('/forms/clearance')}
+                        saving={saving}
+                        customButtons={customButtons}
+                    />
             </form>
 
             {/* Email Modal */}

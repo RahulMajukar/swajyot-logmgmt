@@ -31,8 +31,9 @@ export const FormHeader = ({
                     name="documentNo"
                     value={documentInfo.documentNo || ''}
                     onChange={handleChange}
-                    disabled={readOnly}
+                    disabled
                     className="w-full px-1 py-0 border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 disabled:bg-gray-100 disabled:text-gray-500"
+                    placeholder='Auto generated'
                   />
                 </td>
               </tr>
